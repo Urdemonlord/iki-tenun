@@ -1,9 +1,6 @@
 import { prisma } from '$lib/server/db'
 import { redirect, fail } from '@sveltejs/kit'
-import { lucia } from '$lib/server/auth'
 import type { Actions, PageServerLoad } from './$types'
-import { hashSync } from 'bcryptjs'
-import { randomUUID } from 'crypto'
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const items = await prisma.cartItem.findMany({
@@ -48,26 +45,7 @@ export const actions: Actions = {
 		}
 
 		const total = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
-
-		// Auto-create guest user if not logged in
-		let userId = locals.user?.id
-		if (!userId) {
-			const guestEmail = `guest-${randomUUID().slice(0, 8)}@ikitenu.demo`
-			const guest = await prisma.user.create({
-				data: {
-					email: guestEmail,
-					name: name,
-					passwordHash: hashSync(randomUUID(), 10),
-					role: 'customer'
-				}
-			})
-			userId = guest.id
-
-			// Auto-login as guest
-			const session = await lucia.createSession(userId, {})
-			const sessionCookie = lucia.createSessionCookie(session.id)
-			cookies.set(sessionCookie.name, sessionCookie.value, { path: '/', ...sessionCookie.attributes })
-		}
+		const userId = locals.user?.id
 
 		const order = await prisma.order.create({
 			data: {

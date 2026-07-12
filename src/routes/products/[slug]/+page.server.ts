@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			id: { not: product.id },
 			isActive: true
 		},
-		include: { images: { take: 1, orderBy: { sortOrder: 'asc' } } },
+		include: { images: { take: 1, orderBy: { sortOrder: 'asc' } }, category: true },
 		take: 4,
 		orderBy: { createdAt: 'desc' }
 	})

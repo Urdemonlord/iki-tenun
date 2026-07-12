@@ -3,7 +3,13 @@ import { prisma } from '$lib/server/db'
 import { compareSync } from 'bcryptjs'
 import { redirect, fail } from '@sveltejs/kit'
 import { mergeCarts } from '$lib/server/cart'
+import { z } from 'zod/v4'
 import type { Actions, PageServerLoad } from './$types'
+
+const loginSchema = z.object({
+	email: z.email(),
+	password: z.string().min(1)
+})
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) throw redirect(302, '/')
@@ -13,12 +19,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
 	default: async ({ request, cookies, locals }) => {
 		const formData = await request.formData()
-		const email = formData.get('email') as string
-		const password = formData.get('password') as string
-
-		if (!email || !password) {
-			return fail(400, { error: 'Email dan password harus diisi' })
+		const parsed = loginSchema.safeParse(Object.fromEntries(formData))
+		if (!parsed.success) {
+			return fail(400, { error: 'Email atau password tidak valid' })
 		}
+
+		const { email, password } = parsed.data
 
 		const user = await prisma.user.findUnique({ where: { email } })
 		if (!user || !compareSync(password, user.passwordHash)) {
