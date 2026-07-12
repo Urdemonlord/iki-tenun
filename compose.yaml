@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:3301:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/data/dev.db
+      - DATABASE_FILE=/data/dev.db
+      - ORIGIN=https://ikitenun.meowlabs.id
+    volumes:
+      - ikitenun_data:/data
+    restart: unless-stopped
+
+volumes:
+  ikitenun_data:
