@@ -37,6 +37,16 @@ export const actions: Actions = {
 		})
 		if (items.length === 0) throw redirect(302, '/cart')
 
+		// Validate stock before creating order
+		const stockErrors = items
+			.map(i => ({ name: i.product.name, available: i.product.stock, requested: i.quantity }))
+			.filter(i => i.requested > i.available)
+		if (stockErrors.length > 0) {
+			return fail(400, {
+				error: `Stok tidak cukup: ${stockErrors.map(s => `${s.name} (tersedia ${s.available}, diminta ${s.requested})`).join(', ')}`
+			})
+		}
+
 		const total = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
 
 		// Auto-create guest user if not logged in
@@ -82,6 +92,14 @@ export const actions: Actions = {
 				}
 			}
 		})
+
+		// Decrement stock
+		for (const item of items) {
+			await prisma.product.update({
+				where: { id: item.productId },
+				data: { stock: { decrement: item.quantity } }
+			})
+		}
 
 		// Clear cart
 		await prisma.cartItem.deleteMany({ where: { sessionId: locals.cartId } })

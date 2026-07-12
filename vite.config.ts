@@ -14,9 +14,5 @@ export default defineConfig({
 			adapter: adapter()
 		})
 	],
-	kit: {
-		csrf: {
-			checkOrigin: false
-		}
-	}
+
 });
