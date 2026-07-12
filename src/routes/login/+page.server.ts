@@ -2,6 +2,7 @@ import { lucia } from '$lib/server/auth'
 import { prisma } from '$lib/server/db'
 import { compareSync } from 'bcryptjs'
 import { redirect, fail } from '@sveltejs/kit'
+import { mergeCarts } from '$lib/server/cart'
 import type { Actions, PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -10,7 +11,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 }
 
 export const actions: Actions = {
-	default: async ({ request, cookies }) => {
+	default: async ({ request, cookies, locals }) => {
 		const formData = await request.formData()
 		const email = formData.get('email') as string
 		const password = formData.get('password') as string
@@ -22,6 +23,12 @@ export const actions: Actions = {
 		const user = await prisma.user.findUnique({ where: { email } })
 		if (!user || !compareSync(password, user.passwordHash)) {
 			return fail(400, { error: 'Email atau password salah' })
+		}
+
+		// Merge anonymous cart into user cart before creating session
+		const anonCartId = locals.cartId
+		if (anonCartId !== user.id) {
+			await mergeCarts(anonCartId, user.id)
 		}
 
 		const session = await lucia.createSession(user.id, {})

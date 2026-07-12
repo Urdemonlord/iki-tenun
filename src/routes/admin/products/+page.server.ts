@@ -2,12 +2,20 @@ import { prisma } from '$lib/server/db'
 import { redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async () => {
+const PAGE_SIZE = 20
+
+export const load: PageServerLoad = async ({ url }) => {
+	const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'))
+	const total = await prisma.product.count()
+
 	const products = await prisma.product.findMany({
 		include: { category: true, images: { take: 1 } },
-		orderBy: { createdAt: 'desc' }
+		orderBy: { createdAt: 'desc' },
+		skip: (page - 1) * PAGE_SIZE,
+		take: PAGE_SIZE
 	})
-	return { products }
+
+	return { products, page, totalPages: Math.ceil(total / PAGE_SIZE) }
 }
 
 export const actions: Actions = {

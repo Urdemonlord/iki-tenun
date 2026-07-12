@@ -10,6 +10,9 @@ export const actions: Actions = {
 			const blank = lucia.createBlankSessionCookie()
 			cookies.set(blank.name, blank.value, { path: '.', ...blank.attributes })
 		}
+
+		// Clear cart cookie so next visit gets fresh anonymous ID
+		cookies.delete('cart_id', { path: '/' })
 		throw redirect(302, '/login')
 	}
 }

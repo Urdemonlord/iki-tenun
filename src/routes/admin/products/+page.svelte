@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { formatPrice } from '$lib/utils/format';
 	import { enhance } from '$app/forms';
+	import Pagination from '$lib/components/Pagination.svelte';
 	let { data } = $props();
 </script>
 
@@ -56,3 +57,5 @@
 		</tbody>
 	</table>
 </div>
+
+<Pagination {basePath="/admin/products"} page={data.page} totalPages={data.totalPages} />

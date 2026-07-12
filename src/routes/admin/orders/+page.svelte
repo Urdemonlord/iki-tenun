@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatPrice } from '$lib/utils/format';
+	import Pagination from '$lib/components/Pagination.svelte';
 	let { data } = $props();
 </script>
 
@@ -26,3 +27,5 @@
 		{/each}
 	</div>
 </div>
+
+<Pagination {basePath="/admin/orders"} page={data.page} totalPages={data.totalPages} />
