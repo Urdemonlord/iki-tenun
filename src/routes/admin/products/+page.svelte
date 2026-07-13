@@ -58,4 +58,4 @@
 	</table>
 </div>
 
-<Pagination {basePath="/admin/products"} page={data.page} totalPages={data.totalPages} />
+<Pagination basePath="/admin/products" page={data.page} totalPages={data.totalPages} />

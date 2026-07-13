@@ -1,9 +1,29 @@
 const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 function cuid() {
   return 'c' + crypto.randomBytes(12).toString('base64url');
+}
+
+function localImg(name) {
+  return '/images/products/' + name;
+}
+
+// Find first available image from a folder name pattern
+const imgDir = '/app/static/images/products';
+const avail = new Set();
+try {
+  fs.readdirSync(imgDir).forEach(f => avail.add(f));
+} catch(e) {
+  // fallback in dev
+}
+
+function firstImg(prefix) {
+  const match = [...avail].find(f => f.startsWith(prefix));
+  return match ? localImg(match) : null;
 }
 
 const db = new Database(process.env.DATABASE_FILE || './dev.db');
@@ -51,8 +71,8 @@ for (let i = 0; i < categories.length; i++) {
 }
 
 // --- Products ---
-const featuredSlugs = new Set(['iris-dress', 'aura-blazer', 'dinara-set-tenun', 'kalani-kimono', 'cempaka-black']);
-const newArrivalSlugs = new Set(['dara-dress', 'harumi-blouse', 'arum-dress']);
+const featuredSlugs = new Set(['bianca-lime', 'dharma-lime', 'arum-dress', 'aura-blazer', 'dinara-set-tenun']);
+const newArrivalSlugs = new Set(['berlin-dress', 'hazel-lime', 'hazel-violet', 'jena-burgundy']);
 
 function makeTags(name, desc) {
   const words = new Set();
@@ -74,13 +94,37 @@ const products = [
     image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-23010-c4umr6iim8lv75-600x783.webp' },
   { name: 'Nana Dress Tenun', slug: 'nana-dress', price: 340000, categoryId: catMap['dress'],
     description: 'Dress tenun klasik dengan potongan simpel elegan. Bahan tenun asli Jepara, nyaman dipakai sehari-hari maupun acara.',
-    image: 'https://ikitenun.com/wp-content/uploads/2021/08/Nana-Dress-1-600x783.jpg' },
+    image: firstImg('nana') || 'https://ikitenun.com/wp-content/uploads/2021/08/Nana-Dress-1-600x783.jpg' },
+  { name: 'Berlin Dress', slug: 'berlin-dress', price: 395000, categoryId: catMap['dress'],
+    description: 'Dress tenun Berlin dengan potongan modern dan motif etnik kontemporer. Cocok untuk acara formal.',
+    image: firstImg('foto_web_berlin') || '/images/placeholder.png' },
   { name: 'Anna Dress', slug: 'anna-dress', price: 430000, categoryId: catMap['dress'],
     description: 'Anna dress tenun pre order 8 hari. Tenun original blangket, resleting belakang. Detail size XS-XXL. Custom size tersedia.',
     image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98z-lspug7zq2ix24c.webp' },
   { name: 'Arum Dress', slug: 'arum-dress', price: 449000, categoryId: catMap['dress'],
     description: 'Dress tenun Arum dengan desain modern & feminin. Bahan tenun ikat premium dari Jepara.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk7-mb1xj5dc4co41d.webp' },
+    image: firstImg('arum_') || 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk7-mb1xj5dc4co41d.webp' },
+  { name: 'Bianca Dress Lime', slug: 'bianca-lime', price: 425000, categoryId: catMap['dress'],
+    description: 'Dress tenun Bianca warna lime fresh. Motif tenun modern, cocok untuk daily wear. Tersedia berbagai ukuran.',
+    image: firstImg('foto_web_bianca_lime_') || '/images/placeholder.png' },
+  { name: 'Bianca Dress Violet', slug: 'bianca-violet', price: 425000, categoryId: catMap['dress'],
+    description: 'Dress tenun Bianca warna violet elegan. Bahan tenun premium dengan motif tradisional khas Jepara.',
+    image: firstImg('foto_web_bianca_1') || '/images/placeholder.png' },
+  { name: 'Dharma Dress Lime', slug: 'dharma-lime', price: 435000, categoryId: catMap['dress'],
+    description: 'Dress tenun Dharma warna lime. Desain modern dengan sentuhan tenun ikat asli Jepara.',
+    image: firstImg('foto_web_dharma_lime_') || '/images/placeholder.png' },
+  { name: 'Dharma Dress Violet', slug: 'dharma-violet', price: 435000, categoryId: catMap['dress'],
+    description: 'Dress tenun Dharma warna violet. Elegan dan cocok untuk acara formal maupun semi-formal.',
+    image: firstImg('foto_web_dharma_1') || '/images/placeholder.png' },
+  { name: 'Hazel Blouse Lime', slug: 'hazel-lime', price: 295000, categoryId: catMap['kimono'],
+    description: 'Blouse tenun Hazel warna lime. Atasan ringan dengan motif tenun etnik yang cantik.',
+    image: firstImg('foto_web_hazel_') || '/images/placeholder.png' },
+  { name: 'Hazel Blouse Violet', slug: 'hazel-violet', price: 295000, categoryId: catMap['kimono'],
+    description: 'Blouse tenun Hazel warna violet. Motif tenun tradisional dalam potongan blouse modern.',
+    image: firstImg('foto_web_lime_') || '/images/placeholder.png' },
+  { name: 'Jena Dress Burgundy', slug: 'jena-burgundy', price: 415000, categoryId: catMap['dress'],
+    description: 'Dress tenun Jena warna burgundy elegan. Bahan tenun premium dengan motif klasik Jepara.',
+    image: firstImg('foto_web_jena_') || '/images/placeholder.png' },
   { name: 'Becca Dress', slug: 'becca-dress', price: 405000, categoryId: catMap['dress'],
     description: 'Dress tenun Becca, potongan A-line yang flattering untuk semua bentuk tubuh. Tenun ikat asli Jepara.',
     image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98y-lsptngi3f7zb01.webp' },
@@ -131,6 +175,26 @@ const products = [
 const insertProd = db.prepare(`INSERT INTO "Product" ("id","name","slug","description","price","stock","categoryId","isActive","isFeatured","isNewArrival","tags","createdAt","updatedAt") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`);
 const insertImg = db.prepare(`INSERT INTO "ProductImage" ("id","url","alt","sortOrder","productId") VALUES (?,?,?,?,?)`);
 
+// Product slug -> image prefix for multi-image support
+const imgPrefixMap = {
+  'arum-dress': 'arum',
+  'bianca-lime': 'foto_web_bianca_lime',
+  'bianca-violet': 'foto_web_bianca_',
+  'dharma-lime': 'foto_web_dharma_lime',
+  'dharma-violet': 'foto_web_dharma_',
+  'hazel-lime': 'foto_web_hazel_',
+  'hazel-violet': 'foto_web_lime_',
+  'jena-burgundy': 'foto_web_jena_',
+  'berlin-dress': 'foto_web_berlin',
+};
+
+function findLocalImages(prefix) {
+  return [...avail]
+    .filter(f => f.startsWith(prefix))
+    .sort()
+    .map(f => '/images/products/' + f);
+}
+
 const insertAll = db.transaction(() => {
   for (const p of products) {
     const pid = cuid();
@@ -142,7 +206,16 @@ const insertAll = db.transaction(() => {
       rnd(10, 50), p.categoryId, 1, isFeatured, isNewArrival,
       makeTags(p.name, p.description), now, now
     );
+    // Insert main image
     insertImg.run(cuid(), p.image, p.name, 0, pid);
+    // Insert additional local images if available
+    const prefix = imgPrefixMap[p.slug];
+    if (prefix) {
+      const extras = findLocalImages(prefix).filter(img => img !== p.image);
+      extras.forEach((img, i) => {
+        insertImg.run(cuid(), img, p.name + ' ' + (i + 2), i + 1, pid);
+      });
+    }
   }
 });
 insertAll();

@@ -67,12 +67,12 @@
 		<ScrollReveal>
 		<div>
 			{#if data.product.images[selectedImg]}
-				<div class="aspect-[4/5] bg-ivory rounded-lg overflow-hidden mb-4 relative"
+				<div class="aspect-[4/5] bg-ivory rounded-lg overflow-hidden mb-4 relative flex items-center justify-center"
 					onmouseenter={() => imgZoom = true} onmouseleave={() => imgZoom = false}>
 					<img src={data.product.images[selectedImg].url}
 						alt={data.product.images[selectedImg].alt || data.product.name}
 						loading="eager"
-						class="w-full h-full object-cover transition-transform duration-700 {imgZoom ? 'scale-[1.15] cursor-zoom-out' : 'cursor-zoom-in'}" />
+						class="w-full h-full object-contain p-0 transition-transform duration-700 {imgZoom ? 'scale-[1.15] cursor-zoom-out' : 'cursor-zoom-in'}" />
 					{#if data.product.stock <= 5 && data.product.stock > 0}
 						<div class="absolute bottom-3 left-3 bg-terracotta text-white text-[10px] font-medium px-2 py-1 rounded">
 							⚡ Hanya {data.product.stock} lagi!

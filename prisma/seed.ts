@@ -7,68 +7,157 @@ const adapter = new PrismaBetterSqlite3({
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-	const [dress, blazer, set, premium] = await Promise.all([
+	const [dress, kemejaCat] = await Promise.all([
 		prisma.category.upsert({
 			where: { slug: 'dress' },
-			update: {},
+			update: { name: 'Dress' },
 			create: { name: 'Dress', slug: 'dress', sortOrder: 1 }
 		}),
 		prisma.category.upsert({
-			where: { slug: 'blazer' },
-			update: {},
-			create: { name: 'Blazer', slug: 'blazer', sortOrder: 2 }
-		}),
-		prisma.category.upsert({
-			where: { slug: 'set' },
-			update: {},
-			create: { name: 'Set Tenun', slug: 'set', sortOrder: 3 }
-		}),
-		prisma.category.upsert({
-			where: { slug: 'premium' },
-			update: {},
-			create: { name: 'Premium Collection', slug: 'premium', sortOrder: 4 }
+			where: { slug: 'kemeja' },
+			update: { name: 'Kemeja' },
+			create: { name: 'Kemeja', slug: 'kemeja', sortOrder: 2 }
 		})
 	])
 
+	const img = (f: string) => `/images/products/${f}`
+
 	const products = [
-		{ name: 'Anna Dress', slug: 'anna-dress', desc: 'Dress tenun ikat dengan motif tradisional Jepara. Potongan modern yang elegan, cocok untuk acara formal maupun kasual.', price: 430000, cat: dress.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98z-lspug7zq2ix24c-600x783.webp', tags: 'dress,tenun,ikat,jepara', featured: true },
-		{ name: 'Arum Dress', slug: 'arum-dress', desc: 'Dress tenun ikat Arum dengan perpaduan warna cerah dan motif eksklusif.', price: 449000, cat: dress.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk7-mb1xj5dc4co41d-600x783.webp', tags: 'dress,tenun,ikat,jepara', newArrival: true },
-		{ name: 'Becca Dress', slug: 'becca-dress', desc: 'Dress tenun ikat Becca dengan desain simpel namun berkelas.', price: 405000, cat: dress.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98y-lsptngi3f7zb01-600x783.webp', tags: 'dress,tenun,ikat,jepara' },
-		{ name: 'Berlin Dress Black', slug: 'berlin-dress-black', desc: 'Berlin Dress - IKATAN SERIES. Tenun ikat premium dengan sentuhan kontemporer.', price: 428000, cat: dress.id, img: 'https://ikitenun.com/wp-content/uploads/2025/10/9-600x783.png', tags: 'dress,tenun,ikat,jepara,ikatan-series', newArrival: true },
-		{ name: 'Berlin Dress Red', slug: 'berlin-dress-red', desc: 'Berlin Dress - IKATAN SERIES warna merah. Tenun ikat premium dengan warna berani.', price: 428000, cat: dress.id, img: 'https://ikitenun.com/wp-content/uploads/2025/10/10-600x783.png', tags: 'dress,tenun,ikat,jepara,ikatan-series', newArrival: true },
-		{ name: 'Claudia Dress', slug: 'claudia-dress', desc: 'Dress tenun ikat Claudia dengan potongan A-line yang flattering.', price: 375000, cat: dress.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-23010-c4umr6iim8lv75-600x783.webp', tags: 'dress,tenun,ikat,jepara' },
-		{ name: 'Dara Dress', slug: 'dara-dress', desc: 'Dress tenun ikat Dara dengan motif modern yang ringan dan nyaman.', price: 390000, cat: dress.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98y-lw8um1ncpi6zc7-600x783.webp', tags: 'dress,tenun,ikat,jepara', newArrival: true },
-		{ name: 'Aura Blazer', slug: 'aura-blazer', desc: 'Blazer tenun ikat Aura. Potongan tailored yang memberikan kesan profesional.', price: 485000, cat: blazer.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98s-lw8tx77vlk3hda-600x783.webp', tags: 'blazer,tenun,ikat,jepara', featured: true },
-		{ name: 'Bamma Blazer', slug: 'bamma-blazer', desc: 'Blazer tenun ikat Bamma dengan motif klasik.', price: 438000, cat: blazer.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk9-mb1vit2d7d3y86-600x783.webp', tags: 'blazer,tenun,ikat,jepara' },
-		{ name: 'Dirgayu Blazer', slug: 'dirgayu-blazer', desc: 'Blazer tenun ikat Dirgayu dengan desain elegan.', price: 495000, cat: blazer.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/6-600x783.png', tags: 'blazer,tenun,ikat,jepara' },
-		{ name: 'Callin Set Tenun', slug: 'callin-set-tenun', desc: 'Set tenun ikat Callin - atasan dan bawahan senada.', price: 530000, cat: set.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rask-m1i1xsqnyytrad-600x783.webp', tags: 'set,tenun,ikat,jepara', featured: true },
-		{ name: 'Corra Set Tenun', slug: 'corra-set-tenun', desc: 'Set tenun ikat Corra dengan kombinasi motif modern dan tradisional.', price: 485000, cat: set.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7ras8-m2lvylvqb7x1e6@resize_w900_nl-600x783.webp', tags: 'set,tenun,ikat,jepara' },
-		{ name: 'Dinara Set Tenun', slug: 'dinara-set-tenun', desc: 'Set tenun ikat Dinara - perpaduan warna earthy tone dengan motif Rajawali.', price: 625000, cat: set.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk5-m71r6l0vt2t8c4-600x783.webp', tags: 'set,tenun,ikat,jepara' },
-		{ name: 'Cempaka Black', slug: 'cempaka-black', desc: 'Premium collection - Tenun ikat eksklusif dengan finishing premium.', price: 728000, cat: premium.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7ra0t-mcwb9v90pd7r77-600x783.webp', tags: 'premium,tenun,ikat,jepara', featured: true },
-		{ name: 'Cempaka White', slug: 'cempaka-white', desc: 'Premium collection - Tenun ikat eksklusif warna putih gading.', price: 728000, cat: premium.id, img: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7ra0m-mcwc3axc1c54bd-600x783.webp', tags: 'premium,tenun,ikat,jepara' }
+		{
+			name: 'Arum Dress', slug: 'arum-dress',
+			desc: 'Dress tenun ikat dengan motif tradisional Jepara. Potongan modern yang elegan.',
+			price: 449000, cat: dress.id, featured: true,
+			images: ['arum_arum_ecommers.png', 'arum_3.png', 'arum_4.png', 'arum_7.png', 'arum_8.png', 'arum_11.png', 'arum_12.png']
+		},
+		{
+			name: 'Bianca Lime', slug: 'bianca-lime',
+			desc: 'Dress tenun ikat Bianca dengan warna lime segar dan motif kontemporer.',
+			price: 430000, cat: dress.id, newArrival: true,
+			images: ['bianca_lime_1.png', 'bianca_lime_2.png', 'bianca_lime_3.png', 'bianca_lime_4.png', 'bianca_lime_5.png', 'bianca_lime_6.png', 'bianca_lime_7.png', 'bianca_lime_8.png']
+		},
+		{
+			name: 'Bianca Violet', slug: 'bianca-violet',
+			desc: 'Dress tenun ikat Bianca varian violet dengan motif elegan.',
+			price: 430000, cat: dress.id, newArrival: true,
+			images: ['bianca_violet_1.png', 'bianca_violet_2.png', 'bianca_violet_3.png', 'bianca_violet_4.png', 'bianca_violet_5.png', 'bianca_violet_6.png', 'bianca_violet_7.png', 'bianca_violet_8.png']
+		},
+		{
+			name: 'Dharma Lime', slug: 'dharma-lime',
+			desc: 'Dress tenun ikat Dharma dengan warna lime yang cerah dan modern.',
+			price: 438000, cat: dress.id,
+			images: ['dharma_lime_1.png', 'dharma_lime_2.png', 'dharma_lime_3.png', 'dharma_lime_4.png', 'dharma_lime_5.png', 'dharma_lime_6.png', 'dharma_lime_7.png', 'dharma_lime_8.png']
+		},
+		{
+			name: 'Dharma Violet', slug: 'dharma-violet',
+			desc: 'Dress tenun ikat Dharma varian violet dengan sentuhan premium.',
+			price: 438000, cat: dress.id,
+			images: ['dharma_violet_1.png', 'dharma_violet_2.png', 'dharma_violet_3.png', 'dharma_violet_4.png', 'dharma_violet_5.png', 'dharma_violet_6.png', 'dharma_violet_7.png', 'dharma_violet_8.png']
+		},
+		{
+			name: 'Hazel Lime', slug: 'hazel-lime',
+			desc: 'Dress tenun ikat Hazel dengan warna lime yang youthful.',
+			price: 428000, cat: dress.id,
+			images: ['foto_web_hazel_1.png', 'foto_web_hazel_2.png', 'foto_web_hazel_3.png', 'foto_web_hazel_4.png', 'foto_web_hazel_5.png']
+		},
+		{
+			name: 'Hazel Violet', slug: 'hazel-violet',
+			desc: 'Dress tenun ikat Hazel varian violet dengan motif eksklusif.',
+			price: 428000, cat: dress.id,
+			images: ['foto_web_lime_1.png', 'foto_web_lime_2.png', 'foto_web_lime_3.png', 'foto_web_lime_4.png', 'foto_web_lime_5.png']
+		},
+		{
+			name: 'Jena Burgundy', slug: 'jena-burgundy',
+			desc: 'Dress tenun ikat Jena dengan warna burgundy elegan.',
+			price: 449000, cat: dress.id, newArrival: true,
+			images: ['foto_web_jena_ungu_2.png', 'foto_web_jena_ungu_3.png', 'foto_web_jena_ungu_4.png', 'foto_web_jena_ungu_5.png']
+		},
+		{
+			name: 'Jena White', slug: 'jena-white',
+			desc: 'Dress tenun ikat Jena varian putih bersih nan anggun.',
+			price: 449000, cat: dress.id,
+			images: ['foto_web_jena_ij_2.png', 'foto_web_jena_ij_3.png', 'foto_web_jena_ij_4.png', 'foto_web_jena_ij_5.png']
+		},
+		{
+			name: 'Kaluna Dress', slug: 'kaluna-dress',
+			desc: 'Dress tenun ikat Kaluna dengan motif modern dan nyaman dipakai.',
+			price: 405000, cat: dress.id,
+			images: ['kaluna_1.png', 'kaluna_2.png', 'kaluna_3.png', 'kaluna_4.png', 'kaluna_5.png']
+		},
+		{
+			name: 'Kenya Dress', slug: 'kenya-dress',
+			desc: 'Dress tenun ikat Kenya dengan desain simpel namun berkelas.',
+			price: 428000, cat: dress.id, featured: true,
+			images: ['kenya_5.png', 'kenya_6.png', 'kenya_10.png']
+		},
+		{
+			name: 'Kusuma Dress', slug: 'kusuma-dress',
+			desc: 'Dress tenun ikat Kusuma dengan motif tradisional yang timeless.',
+			price: 449000, cat: dress.id,
+			images: ['kusuma_2.png', 'kusuma_3.png', 'kusuma_4.png', 'kusuma_5.png']
+		},
+		{
+			name: 'Lara Burgundy', slug: 'lara-burgundy',
+			desc: 'Dress tenun ikat Lara dengan warna burgundy yang memukau.',
+			price: 438000, cat: dress.id, newArrival: true,
+			images: ['lara_ungu_2.png', 'lara_ungu_3.png', 'lara_ungu_4.png', 'lara_ungu_5.png']
+		},
+		{
+			name: 'Lara White', slug: 'lara-white',
+			desc: 'Dress tenun ikat Lara varian putih dengan motif eksklusif.',
+			price: 438000, cat: dress.id,
+			images: ['lara_ij2.png', 'lara_ij_3.png', 'lara_ij_4.png', 'lara_ij_5.png']
+		},
+		{
+			name: 'Monic Dress', slug: 'monic-dress',
+			desc: 'Dress tenun ikat Monic dengan potongan modern yang elegan.',
+			price: 405000, cat: dress.id,
+			images: ['monic_1.png', 'monic_2.png', 'monic_3.png', 'monic_4.png', 'monic_5.png']
+		},
+		{
+			name: 'Natali Dress', slug: 'natali-dress',
+			desc: 'Dress tenun ikat Natali dengan desain kontemporer.',
+			price: 428000, cat: dress.id, featured: true,
+			images: ['natali_ecommers.png', 'natali_1.png', 'natali_2.png', 'natali_9.png']
+		},
+		{
+			name: 'Puspa Dress', slug: 'puspa-dress',
+			desc: 'Dress tenun ikat Puspa dengan motif bunga tradisional Jepara.',
+			price: 449000, cat: dress.id,
+			images: ['puspa_2.png', 'puspa_3.png', 'puspa_4.png', 'puspa_5.png']
+		},
+		{
+			name: 'Kemeja Tenun', slug: 'kemeja-tenun',
+			desc: 'Kemeja tenun ikat premium, cocok untuk acara formal maupun kasual.',
+			price: 375000, cat: kemejaCat.id,
+			images: ['kemeja_ecommers.png', 'kemeja_1.png', 'kemeja_2.png', 'kemeja_3.png', 'kemeja_4.png', 'kemeja_5.png', 'kemeja_7.png']
+		},
+		{
+			name: 'Kemeja Cakra Lime', slug: 'kemeja-cakra-lime',
+			desc: 'Kemeja cakra tenun ikat dengan warna lime yang cerah.',
+			price: 375000, cat: kemejaCat.id,
+			images: ['kemeja_lime_1.png', 'kemeja_lime_2.png', 'kemeja_lime_3.png']
+		},
+		{
+			name: 'Kemeja Cakra Violet', slug: 'kemeja-cakra-violet',
+			desc: 'Kemeja cakra tenun ikat varian violet dengan motif elegan.',
+			price: 375000, cat: kemejaCat.id,
+			images: ['kemeja_violet_1.png', 'kemeja_violet_2.png', 'kemeja_violet_3.png']
+		}
 	]
 
+	// Delete old products & images first
+	await prisma.productImage.deleteMany()
+	await prisma.product.deleteMany()
+
 	for (const p of products) {
-		const product = await prisma.product.upsert({
-			where: { slug: p.slug },
-			update: {
-				name: p.name,
-				description: p.desc,
-				price: p.price,
-				categoryId: p.cat,
-				tags: p.tags,
-				isFeatured: p.featured ?? false,
-				isNewArrival: p.newArrival ?? false,
-				stock: 50,
-				isActive: true
-			},
-			create: {
+		const product = await prisma.product.create({
+			data: {
 				name: p.name,
 				slug: p.slug,
 				description: p.desc,
 				price: p.price,
 				categoryId: p.cat,
-				tags: p.tags,
+				tags: 'tenun,ikat,jepara',
 				isFeatured: p.featured ?? false,
 				isNewArrival: p.newArrival ?? false,
 				stock: 50,
@@ -76,11 +165,16 @@ async function main() {
 			}
 		})
 
-		// Delete existing images and recreate
-		await prisma.productImage.deleteMany({ where: { productId: product.id } })
-		await prisma.productImage.create({
-			data: { url: p.img, alt: p.name, sortOrder: 0, productId: product.id }
-		})
+		for (let i = 0; i < p.images.length; i++) {
+			await prisma.productImage.create({
+				data: {
+					url: img(p.images[i]),
+					alt: `${p.name} ${i === 0 ? '' : `- Foto ${i + 1}`}`.trim(),
+					sortOrder: i,
+					productId: product.id
+				}
+			})
+		}
 	}
 
 	const { hashSync } = await import('bcryptjs')
@@ -95,7 +189,7 @@ async function main() {
 		}
 	})
 
-	console.log(`Seeded ${products.length} products, 4 categories, 1 user`)
+	console.log(`Seeded ${products.length} products, ${products.reduce((s, p) => s + p.images.length, 0)} images`)
 }
 
 main()

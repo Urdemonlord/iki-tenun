@@ -28,4 +28,4 @@
 	</div>
 </div>
 
-<Pagination {basePath="/admin/orders"} page={data.page} totalPages={data.totalPages} />
+<Pagination basePath="/admin/orders" page={data.page} totalPages={data.totalPages} />

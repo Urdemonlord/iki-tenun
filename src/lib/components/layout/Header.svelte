@@ -25,9 +25,7 @@
 			<nav class="hidden md:flex items-center gap-8 text-sm font-medium text-stone">
 				<a href="/products" class="hover:text-charcoal transition py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-charcoal after:transition-all hover:after:w-full">Koleksi</a>
 				<a href="/products?category=dress" class="hover:text-charcoal transition py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-charcoal after:transition-all hover:after:w-full">Dress</a>
-				<a href="/products?category=blazer" class="hover:text-charcoal transition py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-charcoal after:transition-all hover:after:w-full">Blazer</a>
-				<a href="/products?category=set" class="hover:text-charcoal transition py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-charcoal after:transition-all hover:after:w-full">Set</a>
-				<a href="/products?category=kimono" class="hover:text-charcoal transition py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-charcoal after:transition-all hover:after:w-full">Kimono</a>
+				<a href="/products?category=kemeja" class="hover:text-charcoal transition py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-charcoal after:transition-all hover:after:w-full">Kemeja</a>
 			</nav>
 
 			<div class="flex items-center gap-3 md:gap-4">
@@ -62,9 +60,7 @@
 			<nav class="mx-auto max-w-7xl px-4 py-4 flex flex-col gap-1 text-sm font-medium text-stone">
 				<a href="/products" class="py-2.5 px-3 rounded-lg hover:bg-sand/20 hover:text-charcoal transition" onclick={close}>Semua Koleksi</a>
 				<a href="/products?category=dress" class="py-2.5 px-3 rounded-lg hover:bg-sand/20 hover:text-charcoal transition" onclick={close}>Dress</a>
-				<a href="/products?category=blazer" class="py-2.5 px-3 rounded-lg hover:bg-sand/20 hover:text-charcoal transition" onclick={close}>Blazer</a>
-				<a href="/products?category=set" class="py-2.5 px-3 rounded-lg hover:bg-sand/20 hover:text-charcoal transition" onclick={close}>Set</a>
-				<a href="/products?category=kimono" class="py-2.5 px-3 rounded-lg hover:bg-sand/20 hover:text-charcoal transition" onclick={close}>Kimono</a>
+				<a href="/products?category=kemeja" class="py-2.5 px-3 rounded-lg hover:bg-sand/20 hover:text-charcoal transition" onclick={close}>Kemeja</a>
 				<div class="border-t border-sand/30 mt-2 pt-2"></div>
 				{#if user}
 					<a href="/account" class="py-2.5 px-3 rounded-lg hover:bg-sand/20 hover:text-charcoal transition" onclick={close}>{user.name || 'Akun Saya'}</a>
