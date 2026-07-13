@@ -184,7 +184,7 @@ const products = [
     images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk5-m71r6l0vt2t8c4.webp'] },
   { name: 'Corra Set Tenun', slug: 'corra-set-tenun', price: 485000, categoryId: catMap['set'],
     description: 'Set tenun Corra couple matching. Kombinasi tenun ikat modern.',
-    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7ras8-m2lvylvqb7x1e6.webp'] },
+    images: [img('placeholder.svg')] },
   { name: 'Cempaka Set Black', slug: 'cempaka-black', price: 728000, categoryId: catMap['set'],
     description: 'Set tenun Cempaka warna hitam premium. Elegan dan berkelas.',
     images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7ra0t-mcwb9v90pd7r77.webp'] },
