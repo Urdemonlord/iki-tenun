@@ -1,35 +1,16 @@
 const Database = require('better-sqlite3');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
 
 function cuid() {
   return 'c' + crypto.randomBytes(12).toString('base64url');
 }
 
-function localImg(name) {
-  return '/images/products/' + name;
-}
-
-// Find first available image from a folder name pattern
-const imgDir = '/app/static/images/products';
-const avail = new Set();
-try {
-  fs.readdirSync(imgDir).forEach(f => avail.add(f));
-} catch(e) {
-  // fallback in dev
-}
-
-function firstImg(prefix) {
-  const match = [...avail].find(f => f.startsWith(prefix));
-  return match ? localImg(match) : null;
-}
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
 const db = new Database(process.env.DATABASE_FILE || './dev.db');
 db.pragma('journal_mode = WAL');
 
-// Clear old data
 db.exec(`
   DELETE FROM "WishlistItem";
   DELETE FROM "Review";
@@ -50,7 +31,7 @@ const adminId = cuid();
 const passwordHash = bcrypt.hashSync('admin123', 10);
 const now = new Date().toISOString();
 db.prepare(`INSERT INTO "User" ("id","email","name","passwordHash","phone","role","createdAt","updatedAt") VALUES (?,?,?,?,?,?,?,?)`).run(
-  adminId, 'admin@ikitentun.id', 'Admin IKI TENUN', passwordHash, null, 'admin', now, now
+  adminId, 'admin@ikitenun.com', 'Admin IKI TENUN', passwordHash, null, 'admin', now, now
 );
 
 // --- Categories ---
@@ -59,6 +40,7 @@ const categories = [
   { name: 'Blazer', slug: 'blazer', description: 'Blazer tenun modern', image: null },
   { name: 'Set', slug: 'set', description: 'Set tenun couple/ matching', image: null },
   { name: 'Kimono', slug: 'kimono', description: 'Kimono & outerwear tenun', image: null },
+  { name: 'Kemeja', slug: 'kemeja', description: 'Kemeja tenun ikat premium', image: null },
 ];
 
 const catMap = {};
@@ -70,130 +52,160 @@ for (let i = 0; i < categories.length; i++) {
   catMap[c.slug] = id;
 }
 
-// --- Products ---
-const featuredSlugs = new Set(['bianca-lime', 'dharma-lime', 'arum-dress', 'aura-blazer', 'dinara-set-tenun']);
-const newArrivalSlugs = new Set(['berlin-dress', 'hazel-lime', 'hazel-violet', 'jena-burgundy']);
-
 function makeTags(name, desc) {
   const words = new Set();
   const kw = (name + ' ' + desc).toLowerCase().split(/\W+/);
-  const keep = ['tenun','ikat','dress','blazer','set','couple','kimono','outerwear','premium','jepara','floral','etnik','modern','formal','casual','daily','blangket'];
+  const keep = ['tenun','ikat','dress','blazer','set','couple','kimono','outerwear','premium','jepara','floral','etnik','modern','formal','casual','daily','blangket','kemeja','cakra','lime','violet','burgundy','white'];
   for (const w of kw) if (keep.includes(w)) words.add(w);
   return [...words].join(',');
 }
 
-function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+const img = (f) => '/images/products/' + f;
+
+// Product definitions: { name, slug, price, categoryId, description, images[], featured?, newArrival? }
+// URL fallback products keep a single image, local-image products use explicit arrays
+const featuredSlugs = new Set(['bianca-lime', 'dharma-lime', 'arum-dress', 'kenya-dress', 'natali-dress']);
+const newArrivalSlugs = new Set(['hazel-lime', 'hazel-violet', 'jena-burgundy', 'lara-burgundy']);
 
 const products = [
-  // Dress
-  { name: 'Iris Dress Tenun', slug: 'iris-dress', price: 370000, categoryId: catMap['dress'],
-    description: 'Dress tenun ikat asli Jepara dengan motif floral anggun. Bahan tenun blangket premium, resleting belakang. Ukuran XS-XXL. Pre-order 8 hari kerja.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98z-lspug7zq2ix24c.webp' },
-  { name: 'Marigold Dress Tenun', slug: 'marigold-dress', price: 350000, categoryId: catMap['dress'],
-    description: 'Dress tenun ikat motif bunga marigold. Warna cerah dengan kombinasi tenun tradisional modern. Cocok untuk acara formal & semi-formal.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-23010-c4umr6iim8lv75-600x783.webp' },
-  { name: 'Nana Dress Tenun', slug: 'nana-dress', price: 340000, categoryId: catMap['dress'],
-    description: 'Dress tenun klasik dengan potongan simpel elegan. Bahan tenun asli Jepara, nyaman dipakai sehari-hari maupun acara.',
-    image: firstImg('nana') || 'https://ikitenun.com/wp-content/uploads/2021/08/Nana-Dress-1-600x783.jpg' },
-  { name: 'Berlin Dress', slug: 'berlin-dress', price: 395000, categoryId: catMap['dress'],
-    description: 'Dress tenun Berlin dengan potongan modern dan motif etnik kontemporer. Cocok untuk acara formal.',
-    image: firstImg('foto_web_berlin') || '/images/placeholder.png' },
-  { name: 'Anna Dress', slug: 'anna-dress', price: 430000, categoryId: catMap['dress'],
-    description: 'Anna dress tenun pre order 8 hari. Tenun original blangket, resleting belakang. Detail size XS-XXL. Custom size tersedia.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98z-lspug7zq2ix24c.webp' },
+  // === DRESS ===
   { name: 'Arum Dress', slug: 'arum-dress', price: 449000, categoryId: catMap['dress'],
     description: 'Dress tenun Arum dengan desain modern & feminin. Bahan tenun ikat premium dari Jepara.',
-    image: firstImg('arum_') || 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk7-mb1xj5dc4co41d.webp' },
-  { name: 'Bianca Dress Lime', slug: 'bianca-lime', price: 425000, categoryId: catMap['dress'],
-    description: 'Dress tenun Bianca warna lime fresh. Motif tenun modern, cocok untuk daily wear. Tersedia berbagai ukuran.',
-    image: firstImg('foto_web_bianca_lime_') || '/images/placeholder.png' },
-  { name: 'Bianca Dress Violet', slug: 'bianca-violet', price: 425000, categoryId: catMap['dress'],
+    images: [img('arum_arum_ecommers.png'), img('arum_3.png'), img('arum_4.png'), img('arum_7.png'), img('arum_8.png'), img('arum_11.png'), img('arum_12.png')],
+    featured: true },
+  { name: 'Bianca Dress Lime', slug: 'bianca-lime', price: 430000, categoryId: catMap['dress'],
+    description: 'Dress tenun Bianca warna lime fresh. Motif tenun modern, cocok untuk daily wear.',
+    images: ['bianca_lime_1.png','bianca_lime_2.png','bianca_lime_3.png','bianca_lime_4.png','bianca_lime_5.png','bianca_lime_6.png','bianca_lime_7.png','bianca_lime_8.png'].map(img),
+    featured: true },
+  { name: 'Bianca Dress Violet', slug: 'bianca-violet', price: 430000, categoryId: catMap['dress'],
     description: 'Dress tenun Bianca warna violet elegan. Bahan tenun premium dengan motif tradisional khas Jepara.',
-    image: firstImg('foto_web_bianca_1') || '/images/placeholder.png' },
-  { name: 'Dharma Dress Lime', slug: 'dharma-lime', price: 435000, categoryId: catMap['dress'],
+    images: ['bianca_violet_1.png','bianca_violet_2.png','bianca_violet_3.png','bianca_violet_4.png','bianca_violet_5.png','bianca_violet_6.png','bianca_violet_7.png','bianca_violet_8.png'].map(img) },
+  { name: 'Dharma Dress Lime', slug: 'dharma-lime', price: 438000, categoryId: catMap['dress'],
     description: 'Dress tenun Dharma warna lime. Desain modern dengan sentuhan tenun ikat asli Jepara.',
-    image: firstImg('foto_web_dharma_lime_') || '/images/placeholder.png' },
-  { name: 'Dharma Dress Violet', slug: 'dharma-violet', price: 435000, categoryId: catMap['dress'],
+    images: ['dharma_lime_1.png','dharma_lime_2.png','dharma_lime_3.png','dharma_lime_4.png','dharma_lime_5.png','dharma_lime_6.png','dharma_lime_7.png','dharma_lime_8.png'].map(img),
+    featured: true },
+  { name: 'Dharma Dress Violet', slug: 'dharma-violet', price: 438000, categoryId: catMap['dress'],
     description: 'Dress tenun Dharma warna violet. Elegan dan cocok untuk acara formal maupun semi-formal.',
-    image: firstImg('foto_web_dharma_1') || '/images/placeholder.png' },
+    images: ['dharma_violet_1.png','dharma_violet_2.png','dharma_violet_3.png','dharma_violet_4.png','dharma_violet_5.png','dharma_violet_6.png','dharma_violet_7.png','dharma_violet_8.png'].map(img) },
   { name: 'Hazel Blouse Lime', slug: 'hazel-lime', price: 295000, categoryId: catMap['kimono'],
     description: 'Blouse tenun Hazel warna lime. Atasan ringan dengan motif tenun etnik yang cantik.',
-    image: firstImg('foto_web_hazel_') || '/images/placeholder.png' },
+    images: ['foto_web_hazel_1.png','foto_web_hazel_2.png','foto_web_hazel_3.png','foto_web_hazel_4.png','foto_web_hazel_5.png'].map(img),
+    newArrival: true },
   { name: 'Hazel Blouse Violet', slug: 'hazel-violet', price: 295000, categoryId: catMap['kimono'],
     description: 'Blouse tenun Hazel warna violet. Motif tenun tradisional dalam potongan blouse modern.',
-    image: firstImg('foto_web_lime_') || '/images/placeholder.png' },
-  { name: 'Jena Dress Burgundy', slug: 'jena-burgundy', price: 415000, categoryId: catMap['dress'],
+    images: ['foto_web_lime_1.png','foto_web_lime_2.png','foto_web_lime_3.png','foto_web_lime_4.png','foto_web_lime_5.png'].map(img),
+    newArrival: true },
+  { name: 'Jena Dress Burgundy', slug: 'jena-burgundy', price: 449000, categoryId: catMap['dress'],
     description: 'Dress tenun Jena warna burgundy elegan. Bahan tenun premium dengan motif klasik Jepara.',
-    image: firstImg('foto_web_jena_') || '/images/placeholder.png' },
+    images: ['foto_web_jena_ungu_2.png','foto_web_jena_ungu_3.png','foto_web_jena_ungu_4.png','foto_web_jena_ungu_5.png'].map(img),
+    newArrival: true },
+  { name: 'Jena Dress White', slug: 'jena-white', price: 449000, categoryId: catMap['dress'],
+    description: 'Dress tenun Jena warna putih bersih nan anggun. Motif tenun modern khas Jepara.',
+    images: ['foto_web_jena_ij_2.png','foto_web_jena_ij_3.png','foto_web_jena_ij_4.png','foto_web_jena_ij_5.png'].map(img) },
+  { name: 'Kaluna Dress', slug: 'kaluna-dress', price: 405000, categoryId: catMap['dress'],
+    description: 'Dress tenun ikat Kaluna dengan motif modern dan nyaman dipakai sehari-hari.',
+    images: ['kaluna_1.png','kaluna_2.png','kaluna_3.png','kaluna_4.png','kaluna_5.png'].map(img) },
+  { name: 'Kenya Dress', slug: 'kenya-dress', price: 428000, categoryId: catMap['dress'],
+    description: 'Dress tenun ikat Kenya dengan desain simpel namun berkelas.',
+    images: ['kenya_5.png','kenya_6.png','kenya_10.png'].map(img),
+    featured: true },
+  { name: 'Kusuma Dress', slug: 'kusuma-dress', price: 449000, categoryId: catMap['dress'],
+    description: 'Dress tenun ikat Kusuma dengan motif tradisional yang timeless.',
+    images: ['kusuma_2.png','kusuma_3.png','kusuma_4.png','kusuma_5.png'].map(img) },
+  { name: 'Lara Dress Burgundy', slug: 'lara-burgundy', price: 438000, categoryId: catMap['dress'],
+    description: 'Dress tenun ikat Lara dengan warna burgundy yang memukau.',
+    images: ['lara_ungu_2.png','lara_ungu_3.png','lara_ungu_4.png','lara_ungu_5.png'].map(img),
+    newArrival: true },
+  { name: 'Lara Dress White', slug: 'lara-white', price: 438000, categoryId: catMap['dress'],
+    description: 'Dress tenun ikat Lara varian putih dengan motif eksklusif.',
+    images: ['lara_ij2.png','lara_ij_3.png','lara_ij_4.png','lara_ij_5.png'].map(img) },
+  { name: 'Monic Dress', slug: 'monic-dress', price: 405000, categoryId: catMap['dress'],
+    description: 'Dress tenun ikat Monic dengan potongan modern yang elegan.',
+    images: ['monic_1.png','monic_2.png','monic_3.png','monic_4.png','monic_5.png'].map(img) },
+  { name: 'Natali Dress', slug: 'natali-dress', price: 428000, categoryId: catMap['dress'],
+    description: 'Dress tenun ikat Natali dengan desain kontemporer.',
+    images: ['natali_ecommers.png','natali_1.png','natali_2.png','natali_9.png'].map(img),
+    featured: true },
+  { name: 'Puspa Dress', slug: 'puspa-dress', price: 449000, categoryId: catMap['dress'],
+    description: 'Dress tenun ikat Puspa dengan motif bunga tradisional Jepara.',
+    images: ['puspa_2.png','puspa_3.png','puspa_4.png','puspa_5.png'].map(img) },
+
+  // Existing dress products with web URLs
+  { name: 'Iris Dress Tenun', slug: 'iris-dress', price: 370000, categoryId: catMap['dress'],
+    description: 'Dress tenun ikat asli Jepara dengan motif floral anggun. Bahan tenun blangket premium, resleting belakang. Ukuran XS-XXL. Pre-order 8 hari kerja.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98z-lspug7zq2ix24c.webp'] },
+  { name: 'Marigold Dress Tenun', slug: 'marigold-dress', price: 350000, categoryId: catMap['dress'],
+    description: 'Dress tenun ikat motif bunga marigold. Warna cerah dengan kombinasi tenun tradisional modern.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-23010-c4umr6iim8lv75-600x783.webp'] },
+  { name: 'Nana Dress Tenun', slug: 'nana-dress', price: 340000, categoryId: catMap['dress'],
+    description: 'Dress tenun klasik dengan potongan simpel elegan. Bahan tenun asli Jepara.',
+    images: ['https://ikitenun.com/wp-content/uploads/2021/08/Nana-Dress-1-600x783.jpg'] },
+  { name: 'Berlin Dress', slug: 'berlin-dress', price: 395000, categoryId: catMap['dress'],
+    description: 'Dress tenun Berlin dengan potongan modern dan motif etnik kontemporer. Cocok untuk acara formal.',
+    images: [img('placeholder.svg')] },
+  { name: 'Anna Dress', slug: 'anna-dress', price: 430000, categoryId: catMap['dress'],
+    description: 'Anna dress tenun pre order 8 hari. Tenun original blangket, resleting belakang.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98z-lspug7zq2ix24c.webp'] },
   { name: 'Becca Dress', slug: 'becca-dress', price: 405000, categoryId: catMap['dress'],
-    description: 'Dress tenun Becca, potongan A-line yang flattering untuk semua bentuk tubuh. Tenun ikat asli Jepara.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98y-lsptngi3f7zb01.webp' },
+    description: 'Dress tenun Becca, potongan A-line yang flattering untuk semua bentuk tubuh.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98y-lsptngi3f7zb01.webp'] },
   { name: 'Dara Dress', slug: 'dara-dress', price: 390000, categoryId: catMap['dress'],
     description: 'Dress tenun Dara, kombinasi motif etnik kontemporer. Cocok untuk pesta dan acara spesial.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98y-lw8um1ncpi6zc7.webp' },
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98y-lw8um1ncpi6zc7.webp'] },
   { name: 'Claudia Dress', slug: 'claudia-dress', price: 375000, categoryId: catMap['dress'],
-    description: 'Dress tenun Claudia dengan desain timeless. Bahan tenun blangket nyaman, motif tradisional khas Jepara.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-23010-c4umr6iim8lv75-600x783.webp' },
+    description: 'Dress tenun Claudia dengan desain timeless. Bahan tenun blangket nyaman.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-23010-c4umr6iim8lv75-600x783.webp'] },
 
-  // Blazer
+  // === KEMEJA ===
+  { name: 'Kemeja Tenun', slug: 'kemeja-tenun', price: 375000, categoryId: catMap['kemeja'],
+    description: 'Kemeja tenun ikat premium, cocok untuk acara formal maupun kasual.',
+    images: ['kemeja_ecommers.png','kemeja_1.png','kemeja_2.png','kemeja_3.png','kemeja_4.png','kemeja_5.png','kemeja_7.png'].map(img) },
+  { name: 'Kemeja Cakra Lime', slug: 'kemeja-cakra-lime', price: 375000, categoryId: catMap['kemeja'],
+    description: 'Kemeja cakra tenun ikat dengan warna lime yang cerah.',
+    images: ['kemeja_lime_1.png','kemeja_lime_2.png','kemeja_lime_3.png'].map(img) },
+  { name: 'Kemeja Cakra Violet', slug: 'kemeja-cakra-violet', price: 375000, categoryId: catMap['kemeja'],
+    description: 'Kemeja cakra tenun ikat varian violet dengan motif elegan.',
+    images: ['kemeja_violet_1.png','kemeja_violet_2.png','kemeja_violet_3.png'].map(img) },
+
+  // === BLAZER ===
   { name: 'Aura Blazer', slug: 'aura-blazer', price: 485000, categoryId: catMap['blazer'],
-    description: 'Aura blazer tenun dijual terpisah. Blazer tenun motif etnik, bisa dipadukan dengan dress atau skirt. Size XS-XXL. Khusus blazer tidak bisa custom.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98s-lw8tx77vlk3hda.webp' },
+    description: 'Aura blazer tenun motif etnik, bisa dipadukan dengan dress atau skirt.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98s-lw8tx77vlk3hda.webp'] },
   { name: 'Bamma Blazer', slug: 'bamma-blazer', price: 438000, categoryId: catMap['blazer'],
-    description: 'Bamma blazer tenun dengan potongan modern. Cocok untuk tampil profesional dengan sentuhan budaya.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk9-mb1vit2d7d3y86.webp' },
+    description: 'Bamma blazer tenun dengan potongan modern. Cocok untuk tampil profesional.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk9-mb1vit2d7d3y86.webp'] },
   { name: 'Dirgayu Blazer', slug: 'dirgayu-blazer', price: 495000, categoryId: catMap['blazer'],
-    description: 'Dirgayu blazer tenun premium. Motif tenun klasik Jepara dalam desain blazer kontemporer.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/6-600x783.png' },
+    description: 'Dirgayu blazer tenun premium. Motif tenun klasik Jepara.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/6-600x783.png'] },
 
-  // Set
+  // === SET ===
   { name: 'Dinara Set Tenun', slug: 'dinara-set-tenun', price: 625000, categoryId: catMap['set'],
-    description: 'Set tenun Dinara couple. Blazer + dress/kemeja senada. Cocok untuk couple outfit di acara formal.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk5-m71r6l0vt2t8c4.webp' },
+    description: 'Set tenun Dinara couple. Blazer + dress/kemeja senada.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk5-m71r6l0vt2t8c4.webp'] },
   { name: 'Corra Set Tenun', slug: 'corra-set-tenun', price: 485000, categoryId: catMap['set'],
-    description: 'Set tenun Corra couple matching. Kombinasi tenun ikat modern untuk tampil serasi bersama pasangan.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7ras8-m2lvylvqb7x1e6.webp' },
+    description: 'Set tenun Corra couple matching. Kombinasi tenun ikat modern.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7ras8-m2lvylvqb7x1e6.webp'] },
   { name: 'Cempaka Set Black', slug: 'cempaka-black', price: 728000, categoryId: catMap['set'],
-    description: 'Set tenun Cempaka warna hitam premium. Elegan dan berkelas, cocok untuk acara spesial.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7ra0t-mcwb9v90pd7r77.webp' },
+    description: 'Set tenun Cempaka warna hitam premium. Elegan dan berkelas.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7ra0t-mcwb9v90pd7r77.webp'] },
   { name: 'Callin Set Tenun', slug: 'callin-set-tenun', price: 530000, categoryId: catMap['set'],
-    description: 'Set tenun Callin couple. Kemeja + dress tenun motif serasi. Bahan tenun premium Jepara.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rask-m1i1xsqnyytrad.webp' },
+    description: 'Set tenun Callin couple. Kemeja + dress tenun motif serasi.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rask-m1i1xsqnyytrad.webp'] },
 
-  // Kimono
+  // === KIMONO ===
   { name: 'Kalani Kimono Tenun', slug: 'kalani-kimono', price: 310000, categoryId: catMap['kimono'],
-    description: 'Kimono tenun Kalani dengan motif etnik modern. Outerwear serbaguna, bisa dipadukan dengan outfit apapun.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk8-m71rii9pnqf0bc.webp' },
+    description: 'Kimono tenun Kalani dengan motif etnik modern. Outerwear serbaguna.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk8-m71rii9pnqf0bc.webp'] },
   { name: 'Sabell Kimono Tenun', slug: 'sabell-kimono', price: 310000, categoryId: catMap['kimono'],
     description: 'Kimono tenun Sabell. Desain longgar nyaman dengan tenun ikat khas Jepara.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk8-m71rii9pnqf0bc.webp' },
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7rbk8-m71rii9pnqf0bc.webp'] },
   { name: 'Harumi Blouse Tenun', slug: 'harumi-blouse', price: 285000, categoryId: catMap['kimono'],
-    description: 'Blouse tenun Harumi. Atasan tenun ringan & nyaman untuk daily wear. Motif tenun asli.',
-    image: 'https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98r-lw8um1n2oise39.webp' },
+    description: 'Blouse tenun Harumi. Atasan tenun ringan & nyaman untuk daily wear.',
+    images: ['https://ikitenun.com/wp-content/uploads/2025/08/id-11134207-7r98r-lw8um1n2oise39.webp'] },
 ];
 
 const insertProd = db.prepare(`INSERT INTO "Product" ("id","name","slug","description","price","stock","categoryId","isActive","isFeatured","isNewArrival","tags","createdAt","updatedAt") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`);
 const insertImg = db.prepare(`INSERT INTO "ProductImage" ("id","url","alt","sortOrder","productId") VALUES (?,?,?,?,?)`);
-
-// Product slug -> image prefix for multi-image support
-const imgPrefixMap = {
-  'arum-dress': 'arum',
-  'bianca-lime': 'foto_web_bianca_lime',
-  'bianca-violet': 'foto_web_bianca_',
-  'dharma-lime': 'foto_web_dharma_lime',
-  'dharma-violet': 'foto_web_dharma_',
-  'hazel-lime': 'foto_web_hazel_',
-  'hazel-violet': 'foto_web_lime_',
-  'jena-burgundy': 'foto_web_jena_',
-  'berlin-dress': 'foto_web_berlin',
-};
-
-function findLocalImages(prefix) {
-  return [...avail]
-    .filter(f => f.startsWith(prefix))
-    .sort()
-    .map(f => '/images/products/' + f);
-}
 
 const insertAll = db.transaction(() => {
   for (const p of products) {
@@ -206,21 +218,14 @@ const insertAll = db.transaction(() => {
       rnd(10, 50), p.categoryId, 1, isFeatured, isNewArrival,
       makeTags(p.name, p.description), now, now
     );
-    // Insert main image
-    insertImg.run(cuid(), p.image, p.name, 0, pid);
-    // Insert additional local images if available
-    const prefix = imgPrefixMap[p.slug];
-    if (prefix) {
-      const extras = findLocalImages(prefix).filter(img => img !== p.image);
-      extras.forEach((img, i) => {
-        insertImg.run(cuid(), img, p.name + ' ' + (i + 2), i + 1, pid);
-      });
-    }
+    p.images.forEach((url, i) => {
+      insertImg.run(cuid(), url, p.name + (i > 0 ? ' - Foto ' + (i + 1) : ''), i, pid);
+    });
   }
 });
 insertAll();
 
-// --- Dummy users for reviews ---
+// --- Dummy reviews (unchanged) ---
 const reviewers = [
   { name: 'Siti Rahmawati', email: 'siti@example.com' },
   { name: 'Dewi Lestari', email: 'dewi@example.com' },
@@ -240,7 +245,6 @@ for (const r of reviewers) {
   reviewerIds.push(rid);
 }
 
-// --- Dummy reviews ---
 const reviewTexts = [
   { rating: 5, comment: 'Kualitas tenunnya luar biasa! Motifnya indah dan jahitan sangat rapi. Puas banget!' },
   { rating: 5, comment: 'Bahannya premium, nyaman dipakai. Pengiriman juga cepat. Recommended seller!' },
@@ -284,6 +288,7 @@ insertReviews();
 
 const count = db.prepare('SELECT COUNT(*) as c FROM "Product"').get().c;
 const catCount = db.prepare('SELECT COUNT(*) as c FROM "Category"').get().c;
+const imgCount = db.prepare('SELECT COUNT(*) as c FROM "ProductImage"').get().c;
 const reviewCount = db.prepare('SELECT COUNT(*) as c FROM "Review"').get().c;
-console.log(`Seed complete: ${count} products, ${catCount} categories, ${reviewCount} reviews, 1 admin user`);
+console.log(`Seed complete: ${count} products, ${catCount} categories, ${imgCount} images, ${reviewCount} reviews, 1 admin user`);
 db.close();
