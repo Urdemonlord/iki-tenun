@@ -1,4 +1,5 @@
 import { prisma } from '$lib/server/db'
+import { requireAdmin } from '$lib/server/auth'
 import { redirect } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 
@@ -19,7 +20,8 @@ export const load: PageServerLoad = async ({ url }) => {
 }
 
 export const actions: Actions = {
-	toggleActive: async ({ request }) => {
+	toggleActive: async ({ request, locals }) => {
+		requireAdmin(locals.user)
 		const form = await request.formData()
 		const id = form.get('id') as string
 		const product = await prisma.product.findUnique({ where: { id } })

@@ -34,54 +34,72 @@ export const actions: Actions = {
 		})
 		if (items.length === 0) throw redirect(302, '/cart')
 
-		// Validate stock before creating order
-		const stockErrors = items
-			.map(i => ({ name: i.product.name, available: i.product.stock, requested: i.quantity }))
-			.filter(i => i.requested > i.available)
-		if (stockErrors.length > 0) {
-			return fail(400, {
-				error: `Stok tidak cukup: ${stockErrors.map(s => `${s.name} (tersedia ${s.available}, diminta ${s.requested})`).join(', ')}`
-			})
-		}
-
 		const total = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
 		const userId = locals.user?.id
 
-		const order = await prisma.order.create({
-			data: {
-				userId,
-				status: 'pending',
-				total,
-				shippingName: name,
-				shippingPhone: phone,
-				shippingAddress: address,
-				shippingCity: city,
-				shippingProvince: province,
-				shippingZip: zip,
-				notes: notes || null,
-				paymentMethod: 'bank_transfer',
-				paymentStatus: 'pending',
-				items: {
-					create: items.map(i => ({
-						productName: i.product.name,
-						price: i.product.price,
-						quantity: i.quantity
-					}))
+		// Atomic: validate stock + create order + decrement stock + clear cart
+		let orderId: string
+		try {
+			orderId = await prisma.$transaction(async (tx) => {
+				// Validate stock inside transaction (atomic read)
+				for (const item of items) {
+					const product = await tx.product.findUnique({
+						where: { id: item.productId },
+						select: { stock: true, name: true }
+					})
+					if (!product || product.stock < item.quantity) {
+						throw new Error(
+							`Stok tidak cukup: ${product?.name ?? item.productId} ` +
+							`(tersedia ${product?.stock ?? 0}, diminta ${item.quantity})`
+						)
+					}
 				}
-			}
-		})
 
-		// Decrement stock
-		for (const item of items) {
-			await prisma.product.update({
-				where: { id: item.productId },
-				data: { stock: { decrement: item.quantity } }
+				// Create order + items
+				const order = await tx.order.create({
+					data: {
+						userId,
+						status: 'pending',
+						total,
+						shippingName: name,
+						shippingPhone: phone,
+						shippingAddress: address,
+						shippingCity: city,
+						shippingProvince: province,
+						shippingZip: zip,
+						notes: notes || null,
+						paymentMethod: 'bank_transfer',
+						paymentStatus: 'pending',
+						items: {
+							create: items.map(i => ({
+								productName: i.product.name,
+								price: i.product.price,
+								quantity: i.quantity
+							}))
+						}
+					}
+				})
+
+				// Decrement stock
+				for (const item of items) {
+					await tx.product.update({
+						where: { id: item.productId },
+						data: { stock: { decrement: item.quantity } }
+					})
+				}
+
+				// Clear cart
+				await tx.cartItem.deleteMany({ where: { sessionId: locals.cartId } })
+
+				return order.id
+			}, {
+				timeout: 5000
 			})
+		} catch (e: any) {
+			const message = e instanceof Error ? e.message : 'Gagal membuat pesanan'
+			return fail(400, { error: message })
 		}
 
-		// Clear cart
-		await prisma.cartItem.deleteMany({ where: { sessionId: locals.cartId } })
-
-		throw redirect(302, `/order/${order.id}`)
+		throw redirect(302, `/order/${orderId}`)
 	}
 }

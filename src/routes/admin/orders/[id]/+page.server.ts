@@ -1,4 +1,5 @@
 import { prisma } from '$lib/server/db'
+import { requireAdmin } from '$lib/server/auth'
 import { redirect, fail } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 
@@ -12,7 +13,8 @@ export const load: PageServerLoad = async ({ params }) => {
 }
 
 export const actions: Actions = {
-	updateStatus: async ({ request, params }) => {
+	updateStatus: async ({ request, params, locals }) => {
+		requireAdmin(locals.user)
 		const form = await request.formData()
 		const status = form.get('status') as string
 		await prisma.order.update({ where: { id: params.id }, data: { status } })

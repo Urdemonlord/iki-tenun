@@ -1,4 +1,5 @@
 import { prisma } from '$lib/server/db'
+import { requireAdmin } from '$lib/server/auth'
 import { redirect, fail } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 
@@ -8,7 +9,8 @@ export const load: PageServerLoad = async () => {
 }
 
 export const actions: Actions = {
-	default: async ({ request }) => {
+	default: async ({ request, locals }) => {
+		requireAdmin(locals.user)
 		const form = await request.formData()
 		const name = form.get('name') as string
 		const slug = form.get('slug') as string

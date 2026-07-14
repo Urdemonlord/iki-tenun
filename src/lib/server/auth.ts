@@ -1,5 +1,6 @@
 import { Lucia } from 'lucia'
 import { BetterSqlite3Adapter } from '@lucia-auth/adapter-sqlite'
+import { error } from '@sveltejs/kit'
 import Database from 'better-sqlite3'
 import path from 'path'
 
@@ -45,5 +46,16 @@ declare module 'lucia' {
 		email: string
 		name: string | null
 		role: string
+	}
+}
+
+/**
+ * Guard for admin form actions.
+ * Layout server load only protects GET — actions bypass it.
+ * Throws 403 if no user or not admin.
+ */
+export function requireAdmin(user: { role: string } | null): void {
+	if (!user || user.role !== 'admin') {
+		throw error(403, 'Akses ditolak')
 	}
 }
