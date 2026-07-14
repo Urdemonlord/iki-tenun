@@ -23,9 +23,8 @@
 	<!-- Slides background -->
 	{#each heroItems as item, i}
 		<div class="absolute inset-0 transition-opacity duration-1000 {i === heroSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}">
-			<div class="absolute inset-0 bg-ivory"></div>
-			<img src={item.images[0]?.url} alt={item.name} class="w-full h-full object-contain p-4 md:p-8" loading={i === 0 ? 'eager' : 'lazy'} />
-			<div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+			<img src={item.images[0]?.url} alt={item.name} class="w-full h-full object-cover" loading={i === 0 ? 'eager' : 'lazy'} />
+			<div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
 		</div>
 	{/each}
 
