@@ -8,6 +8,11 @@ services:
       - DATABASE_URL=file:/data/dev.db
       - DATABASE_FILE=/data/dev.db
       - ORIGIN=https://ikitenun.meowlabs.id
+      # Midtrans — isi dengan key dari dashboard Midtrans
+      # Sandbox: https://dashboard.sandbox.midtrans.com/settings/config
+      # Production: https://dashboard.midtrans.com/settings/config
+      - MIDTRANS_SERVER_KEY=
+      - MIDTRANS_IS_PRODUCTION=false
     volumes:
       - ikitenun_data:/data
     restart: unless-stopped

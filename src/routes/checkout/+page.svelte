@@ -34,6 +34,11 @@
 						</div>
 					{/each}
 					<div>
+						<label class="block text-sm font-medium mb-1">Email (opsional, untuk invoice)</label>
+						<input type="email" name="email"
+							class="w-full px-4 py-3 border border-sand rounded-lg focus:outline-none focus:border-terracotta" />
+					</div>
+					<div>
 						<label class="block text-sm font-medium mb-1">Alamat</label>
 						<textarea name="address" required rows="3"
 							class="w-full px-4 py-3 border border-sand rounded-lg focus:outline-none focus:border-terracotta"></textarea>
@@ -77,7 +82,7 @@
 
 				<div class="border border-sand/50 rounded-lg p-4 mb-6">
 					<p class="text-sm font-medium mb-2">Metode Pembayaran</p>
-					<p class="text-sm text-stone">Transfer Bank — Simulasi</p>
+					<p class="text-sm text-stone">Midtrans Snap — Virtual Account, QRIS, GoPay, ShopeePay, Kartu Kredit</p>
 				</div>
 
 				<button type="submit" disabled={loading}

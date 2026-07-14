@@ -1,5 +1,6 @@
 import { prisma } from '$lib/server/db'
 import { redirect, fail } from '@sveltejs/kit'
+import { createTransaction } from '$lib/server/midtrans'
 import type { Actions, PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -14,7 +15,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 }
 
 export const actions: Actions = {
-	default: async ({ request, locals, cookies }) => {
+	default: async ({ request, locals, url }) => {
 		const form = await request.formData()
 		const name = form.get('name') as string
 		const phone = form.get('phone') as string
@@ -23,6 +24,7 @@ export const actions: Actions = {
 		const province = form.get('province') as string
 		const zip = form.get('zip') as string
 		const notes = form.get('notes') as string
+		const email = (form.get('email') as string) || undefined
 
 		if (!name || !phone || !address || !city || !province || !zip) {
 			return fail(400, { error: 'Semua field alamat harus diisi' })
@@ -41,7 +43,7 @@ export const actions: Actions = {
 		let orderId: string
 		try {
 			orderId = await prisma.$transaction(async (tx) => {
-				// Validate stock inside transaction (atomic read)
+				// Validate stock inside transaction
 				for (const item of items) {
 					const product = await tx.product.findUnique({
 						where: { id: item.productId },
@@ -68,7 +70,7 @@ export const actions: Actions = {
 						shippingProvince: province,
 						shippingZip: zip,
 						notes: notes || null,
-						paymentMethod: 'bank_transfer',
+						paymentMethod: 'midtrans',
 						paymentStatus: 'pending',
 						items: {
 							create: items.map(i => ({
@@ -100,6 +102,35 @@ export const actions: Actions = {
 			return fail(400, { error: message })
 		}
 
-		throw redirect(302, `/order/${orderId}`)
+		// Create Midtrans Snap transaction
+		try {
+			const snapResult = await createTransaction({
+				orderId,
+				amount: total,
+				items: items.map(i => ({
+					id: i.productId,
+					name: i.product.name,
+					price: i.product.price,
+					quantity: i.quantity
+				})),
+				customer: {
+					name,
+					phone,
+					email,
+					address,
+					city,
+					postalCode: zip
+				}
+			})
+
+			// Redirect to Snap payment page
+			throw redirect(303, snapResult.redirectUrl)
+		} catch (e: any) {
+			// If Midtrans fails, order is still created — redirect to order page
+			// User can retry payment from there
+			if (e instanceof Response) throw e // re-throw redirect
+			console.error('[checkout] Midtrans error:', e?.message || e)
+			throw redirect(302, `/order/${orderId}?payment_error=1`)
+		}
 	}
 }
