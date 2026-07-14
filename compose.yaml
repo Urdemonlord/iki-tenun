@@ -9,10 +9,10 @@ services:
       - DATABASE_FILE=/data/dev.db
       - ORIGIN=https://ikitenun.meowlabs.id
       # Midtrans — isi dengan key dari dashboard Midtrans
-      # Sandbox: https://dashboard.sandbox.midtrans.com/settings/config
-      # Production: https://dashboard.midtrans.com/settings/config
       - MIDTRANS_SERVER_KEY=
       - MIDTRANS_IS_PRODUCTION=false
+      # RajaOngkir — isi dengan API key dari dashboard RajaOngkir
+      - RAJAONGKIR_API_KEY=
     volumes:
       - ikitenun_data:/data
     restart: unless-stopped

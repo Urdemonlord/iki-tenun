@@ -10,12 +10,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 	})
 	if (items.length === 0) throw redirect(302, '/cart')
 
-	const total = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
-	return { items, total }
+	const subtotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
+	return { items, subtotal }
 }
 
 export const actions: Actions = {
-	default: async ({ request, locals, url }) => {
+	default: async ({ request, locals }) => {
 		const form = await request.formData()
 		const name = form.get('name') as string
 		const phone = form.get('phone') as string
@@ -25,6 +25,9 @@ export const actions: Actions = {
 		const zip = form.get('zip') as string
 		const notes = form.get('notes') as string
 		const email = (form.get('email') as string) || undefined
+		const shippingCourier = form.get('shipping_courier') as string || ''
+		const shippingService = form.get('shipping_service') as string || ''
+		const shippingCost = parseInt(form.get('shipping_cost') as string) || 0
 
 		if (!name || !phone || !address || !city || !province || !zip) {
 			return fail(400, { error: 'Semua field alamat harus diisi' })
@@ -36,14 +39,13 @@ export const actions: Actions = {
 		})
 		if (items.length === 0) throw redirect(302, '/cart')
 
-		const total = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
+		const subtotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
+		const total = subtotal + shippingCost
 		const userId = locals.user?.id
 
-		// Atomic: validate stock + create order + decrement stock + clear cart
 		let orderId: string
 		try {
 			orderId = await prisma.$transaction(async (tx) => {
-				// Validate stock inside transaction
 				for (const item of items) {
 					const product = await tx.product.findUnique({
 						where: { id: item.productId },
@@ -57,7 +59,6 @@ export const actions: Actions = {
 					}
 				}
 
-				// Create order + items
 				const order = await tx.order.create({
 					data: {
 						userId,
@@ -69,6 +70,9 @@ export const actions: Actions = {
 						shippingCity: city,
 						shippingProvince: province,
 						shippingZip: zip,
+						shippingCourier: shippingCourier || null,
+						shippingService: shippingService || null,
+						shippingCost,
 						notes: notes || null,
 						paymentMethod: 'midtrans',
 						paymentStatus: 'pending',
@@ -82,7 +86,6 @@ export const actions: Actions = {
 					}
 				})
 
-				// Decrement stock
 				for (const item of items) {
 					await tx.product.update({
 						where: { id: item.productId },
@@ -90,16 +93,11 @@ export const actions: Actions = {
 					})
 				}
 
-				// Clear cart
 				await tx.cartItem.deleteMany({ where: { sessionId: locals.cartId } })
-
 				return order.id
-			}, {
-				timeout: 5000
-			})
+			}, { timeout: 5000 })
 		} catch (e: any) {
-			const message = e instanceof Error ? e.message : 'Gagal membuat pesanan'
-			return fail(400, { error: message })
+			return fail(400, { error: e instanceof Error ? e.message : 'Gagal membuat pesanan' })
 		}
 
 		// Create Midtrans Snap transaction
@@ -122,13 +120,9 @@ export const actions: Actions = {
 					postalCode: zip
 				}
 			})
-
-			// Redirect to Snap payment page
 			throw redirect(303, snapResult.redirectUrl)
 		} catch (e: any) {
-			// If Midtrans fails, order is still created — redirect to order page
-			// User can retry payment from there
-			if (e instanceof Response) throw e // re-throw redirect
+			if (e instanceof Response) throw e
 			console.error('[checkout] Midtrans error:', e?.message || e)
 			throw redirect(302, `/order/${orderId}?payment_error=1`)
 		}

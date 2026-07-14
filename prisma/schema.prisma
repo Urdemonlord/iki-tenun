@@ -100,6 +100,9 @@ model Order {
   shippingCity     String
   shippingProvince String
   shippingZip      String
+  shippingCourier  String?
+  shippingService  String?
+  shippingCost     Int         @default(0)
   paymentMethod    String?
   paymentStatus    String      @default("pending")
   notes            String?
