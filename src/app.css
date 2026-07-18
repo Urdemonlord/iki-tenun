@@ -11,7 +11,9 @@
 	--color-sand: #d6d3c9;
 	--color-stone: #78716c;
 	--color-ivory: #f5f3ef;
+	--color-warm-white: #fdfbf7;
 	--animate-marquee: marquee 20s linear infinite;
+	--animate-fadeIn: fadeIn 0.6s ease-out;
 }
 
 @keyframes marquee {
@@ -19,8 +21,14 @@
 	100% { transform: translateX(-33.33%); }
 }
 
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(12px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
 :root {
-	--font-serif: 'Georgia', 'Times New Roman', serif;
+	--font-display: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
+	--font-body: 'Outfit', system-ui, -apple-system, sans-serif;
 	--color-bg: var(--color-cream);
 	--color-text: var(--color-charcoal);
 	--color-accent: var(--color-terracotta);
@@ -30,10 +38,24 @@
 body {
 	background-color: var(--color-bg);
 	color: var(--color-text);
-	font-family: system-ui, -apple-system, sans-serif;
+	font-family: var(--font-body);
+	font-weight: 300;
 	-webkit-font-smoothing: antialiased;
+	line-height: 1.6;
 }
 
 .font-display {
-	font-family: var(--font-serif);
+	font-family: var(--font-display);
+	font-weight: 500;
+	letter-spacing: -0.01em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: var(--font-display);
+	letter-spacing: -0.01em;
+}
+
+/* Smooth section transitions */
+section {
+	animation: fadeIn 0.6s ease-out both;
 }

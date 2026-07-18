@@ -97,68 +97,78 @@
 </div>
 </ScrollReveal>
 
-<!-- Featured Products -->
+<!-- Categories — full-width banners -->
 <ScrollReveal>
 <section class="mx-auto max-w-7xl px-4 py-12 md:py-16">
 	<div class="text-center mb-8 md:mb-12">
-		<p class="text-xs md:text-sm font-medium tracking-widest text-stone uppercase mb-2">Koleksi Pilihan</p>
-		<h2 class="font-display text-2xl md:text-3xl font-bold">Best Sellers</h2>
+		<p class="text-xs md:text-sm font-medium tracking-[0.2em] text-stone uppercase mb-3">Jelajahi</p>
+		<h2 class="font-display text-2xl md:text-4xl font-bold">Kategori</h2>
+	</div>
+	<div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5">
+		{#each data.categories as cat}
+			<a href="/products?category={cat.slug}" class="group relative overflow-hidden rounded-xl md:rounded-2xl
+				aspect-[16/10] md:aspect-[4/5] bg-sand/20">
+				{#if data.categoryImages?.get(cat.id)}
+					<img src={data.categoryImages.get(cat.id)} alt={cat.name}
+						class="w-full h-full object-cover object-top transition duration-700
+							group-hover:scale-105" loading="lazy" />
+				{/if}
+				<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent
+					group-hover:from-black/80 transition-colors duration-500"></div>
+				<div class="absolute bottom-0 left-0 right-0 p-5 md:p-7">
+					<h3 class="font-display text-xl md:text-2xl font-bold text-white mb-1">{cat.name}</h3>
+					<span class="text-xs md:text-sm text-white/70 group-hover:text-white/90 transition-colors
+						inline-flex items-center gap-1">
+						Lihat Koleksi
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+							stroke="currentColor" stroke-width="1.5" class="group-hover:translate-x-1 transition-transform">
+							<path d="M5 12h14M12 5l7 7-7 7"/>
+						</svg>
+					</span>
+				</div>
+			</a>
+		{/each}
+	</div>
+</section>
+</ScrollReveal>
+
+<!-- Featured Products Carousel -->
+{#if data.featured.length > 0}
+<ScrollReveal>
+<section class="mx-auto max-w-7xl px-4 py-12 md:py-16">
+	<div class="text-center mb-8 md:mb-12">
+		<p class="text-xs md:text-sm font-medium tracking-[0.2em] text-stone uppercase mb-3">Koleksi Pilihan</p>
+		<h2 class="font-display text-2xl md:text-4xl font-bold">Best Sellers</h2>
 	</div>
 	<div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-		{#each data.featured as product, i}
+		{#each data.featured.slice(0, 8) as product, i}
 			<div style="transition-delay: {i * 0.05}s">
 				<ProductCard {product} priority={i < 4} />
 			</div>
 		{/each}
 	</div>
 	<div class="text-center mt-8">
-		<a href="/products" class="inline-block border border-charcoal text-charcoal px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-charcoal hover:text-white transition hover:scale-105 active:scale-95">
+		<a href="/products" class="inline-flex items-center gap-2 border border-charcoal text-charcoal px-6 py-3
+			rounded-full text-sm font-medium hover:bg-charcoal hover:text-white transition-all duration-300
+			hover:scale-105 active:scale-95">
 			Lihat Semua Koleksi
+			<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+				stroke="currentColor" stroke-width="1.5">
+				<path d="M5 12h14M12 5l7 7-7 7"/>
+			</svg>
 		</a>
 	</div>
 </section>
 </ScrollReveal>
-
-<!-- Categories -->
-<ScrollReveal>
-<section class="bg-ivory py-12 md:py-16">
-	<div class="mx-auto max-w-7xl px-4">
-		<div class="text-center mb-8 md:mb-12">
-			<p class="text-xs md:text-sm font-medium tracking-widest text-stone uppercase mb-2">Jelajahi</p>
-			<h2 class="font-display text-2xl md:text-3xl font-bold">Kategori</h2>
-		</div>
-		<div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-			{#each data.categories as cat}
-				<a href="/products?category={cat.slug}" class="group">
-					<div class="aspect-[4/5] rounded-lg overflow-hidden relative bg-sand/30
-						group-hover:scale-105 transition duration-300">
-						{#if data.categoryImages?.get(cat.id)}
-							<img src={data.categoryImages.get(cat.id)} alt={cat.name}
-								class="w-full h-full object-cover object-top" loading="lazy" />
-						{:else}
-							<div class="w-full h-full flex items-center justify-center">
-								<span class="font-display text-base md:text-xl font-bold text-stone">{cat.name}</span>
-							</div>
-						{/if}
-						<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-						<div class="absolute bottom-0 left-0 right-0 p-3 md:p-4">
-							<span class="font-display text-sm md:text-base font-bold text-white">{cat.name}</span>
-						</div>
-					</div>
-				</a>
-			{/each}
-		</div>
-	</div>
-</section>
-</ScrollReveal>
+{/if}
 
 <!-- New Arrivals -->
 {#if data.newArrivals.length > 0}
 <ScrollReveal>
 	<section class="mx-auto max-w-7xl px-4 py-12 md:py-16">
 		<div class="text-center mb-8 md:mb-12">
-			<p class="text-xs md:text-sm font-medium tracking-widest text-stone uppercase mb-2">Baru</p>
-			<h2 class="font-display text-2xl md:text-3xl font-bold">New Arrivals</h2>
+			<p class="text-xs md:text-sm font-medium tracking-[0.2em] text-stone uppercase mb-3">Baru</p>
+			<h2 class="font-display text-2xl md:text-4xl font-bold">New Arrivals</h2>
 		</div>
 		<div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
 			{#each data.newArrivals as product}
@@ -193,8 +203,8 @@
 <ScrollReveal>
 <section class="mx-auto max-w-7xl px-4 py-12 md:py-16">
 	<div class="text-center mb-8 md:mb-12">
-		<p class="text-xs md:text-sm font-medium tracking-widest text-stone uppercase mb-2">Social Proof</p>
-		<h2 class="font-display text-2xl md:text-3xl font-bold">Dikenakan Oleh</h2>
+		<p class="text-xs md:text-sm font-medium tracking-[0.2em] text-stone uppercase mb-3">Social Proof</p>
+		<h2 class="font-display text-2xl md:text-4xl font-bold">Dikenakan Oleh</h2>
 		<p class="text-stone text-sm mt-2 max-w-md mx-auto">Dipercaya oleh ratusan pelanggan di seluruh Indonesia</p>
 	</div>
 	<div class="grid grid-cols-3 md:grid-cols-5 gap-3 md:gap-5">
@@ -220,8 +230,8 @@
 <section class="bg-ivory py-12 md:py-16">
 	<div class="mx-auto max-w-7xl px-4">
 		<div class="text-center mb-8 md:mb-12">
-			<p class="text-xs md:text-sm font-medium tracking-widest text-stone uppercase mb-2">Artikel</p>
-			<h2 class="font-display text-2xl md:text-3xl font-bold">Blog & Tips</h2>
+			<p class="text-xs md:text-sm font-medium tracking-[0.2em] text-stone uppercase mb-3">Artikel</p>
+			<h2 class="font-display text-2xl md:text-4xl font-bold">Blog & Tips</h2>
 		</div>
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
 			{#each data.blogArticles as article}

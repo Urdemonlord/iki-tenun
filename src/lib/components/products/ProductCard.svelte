@@ -11,12 +11,13 @@
 <a href="/products/{product.slug}" class="group block relative"
 	onmouseenter={() => hovered = true}
 	onmouseleave={() => hovered = false}>
-	<div class="aspect-[4/5] bg-ivory rounded-lg overflow-hidden mb-3 relative">
+	<div class="aspect-[4/5] bg-ivory rounded-xl overflow-hidden mb-3 relative shadow-sm
+		group-hover:shadow-lg transition-shadow duration-500">
 		{#if product.images?.[0] && !imgError}
 			<!-- Primary image -->
 			<img src={product.images[0].url} alt={product.images[0].alt || product.name}
 				loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : 'auto'}
-				class="w-full h-full object-cover transition-all duration-700 ease-out {hovered && showSecond ? 'opacity-0 scale-105' : hovered ? 'scale-105' : ''}"
+				class="w-full h-full object-cover object-top transition-all duration-700 ease-out {hovered && showSecond ? 'opacity-0 scale-105' : hovered ? 'scale-105' : ''}"
 				class:opacity-0={!imgLoaded}
 				onload={() => imgLoaded = true}
 				onerror={() => { imgError = true; imgLoaded = true; }} />
@@ -25,20 +26,20 @@
 			{#if showSecond}
 				<img src={product.images[1].url} alt={product.images[1].alt || product.name}
 					loading="lazy"
-					class="absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out
+					class="absolute inset-0 w-full h-full object-cover object-top transition-all duration-700 ease-out
 						{hovered ? 'opacity-100 scale-105' : 'opacity-0 scale-100'}" />
 			{/if}
 		{:else}
-			<div class="w-full h-full flex items-center justify-center bg-sand/20 text-sand text-xs">No Image</div>
+			<div class="w-full h-full flex items-center justify-center bg-sand/20 text-sand text-xs font-medium">No Image</div>
 		{/if}
 
 		<!-- Badges -->
-		<div class="absolute top-2 left-2 flex flex-col gap-1">
+		<div class="absolute top-3 left-3 flex flex-col gap-1.5">
 			{#if product.isNewArrival}
-				<span class="bg-terracotta text-white text-[10px] font-medium px-2 py-0.5 rounded">Baru</span>
+				<span class="bg-terracotta text-white text-[10px] font-medium px-2.5 py-1 rounded-full tracking-wide">Baru</span>
 			{/if}
 			{#if product.compareAtPrice && product.compareAtPrice > product.price}
-				<span class="bg-green-600 text-white text-[10px] font-medium px-2 py-0.5 rounded">
+				<span class="bg-green-600 text-white text-[10px] font-medium px-2.5 py-1 rounded-full tracking-wide">
 					-{Math.round((1 - product.price / product.compareAtPrice) * 100)}%
 				</span>
 			{/if}
@@ -46,24 +47,24 @@
 
 		<!-- Stock badge -->
 		{#if product.stock === 0}
-			<div class="absolute inset-0 bg-black/20 flex items-center justify-center">
-				<span class="bg-white text-charcoal text-xs font-medium px-3 py-1 rounded-full">Habis</span>
+			<div class="absolute inset-0 bg-black/30 backdrop-blur-[1px] flex items-center justify-center">
+				<span class="bg-white/90 text-charcoal text-xs font-medium px-4 py-1.5 rounded-full">Habis</span>
 			</div>
 		{:else if product.stock <= 5}
-			<span class="absolute top-2 right-2 bg-amber-500 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+			<span class="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-medium px-2 py-0.5 rounded-full">
 				Sisa {product.stock}
 			</span>
 		{/if}
 	</div>
 
-	<h3 class="text-sm font-medium group-hover:text-terracotta transition-colors duration-200">{product.name}</h3>
-	<div class="flex items-center gap-2 mt-1">
+	<h3 class="text-sm font-medium font-display group-hover:text-terracotta transition-colors duration-300">{product.name}</h3>
+	<div class="flex items-center gap-2 mt-1.5">
 		<p class="text-sm font-semibold text-charcoal">{formatPrice(product.price)}</p>
 		{#if product.compareAtPrice && product.compareAtPrice > product.price}
 			<p class="text-[11px] text-stone line-through">{formatPrice(product.compareAtPrice)}</p>
 		{/if}
 	</div>
 	{#if product.category}
-		<p class="text-[11px] text-stone/60 mt-0.5">{product.category.name}</p>
+		<p class="text-[11px] text-stone/50 mt-0.5">{product.category.name}</p>
 	{/if}
 </a>
