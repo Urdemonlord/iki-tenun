@@ -1,7 +1,7 @@
 <script lang="ts">
 	let { productName, price }: { productName: string; price: number } = $props();
 	let text = `Halo, saya tertarik dengan ${productName} (Rp${price.toLocaleString('id-ID')}). Apakah masih tersedia?`;
-	let waUrl = $derived(`https://wa.me/6281234567890?text=${encodeURIComponent(text)}`);
+	let waUrl = $derived(`https://wa.me/6281225158035?text=${encodeURIComponent(text)}`);
 </script>
 
 <a href={waUrl} target="_blank" rel="noopener noreferrer"

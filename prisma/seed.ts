@@ -178,13 +178,16 @@ async function main() {
 	}
 
 	const { hashSync } = await import('bcryptjs')
+	// ⚠️ GANTI PASSWORD INI SEBELUM PRODUCTION
+	// Jalankan: docker exec iki-tenun-app-1 node -e "const {hashSync} = require('bcryptjs'); console.log(hashSync('PASSWORD_BARU',10))"
+	// Lalu update user via Prisma atau langsung di SQLite
 	await prisma.user.upsert({
 		where: { email: 'admin@ikitenun.com' },
 		update: {},
 		create: {
 			email: 'admin@ikitenun.com',
 			name: 'Admin IKI TENUN',
-			passwordHash: hashSync('admin123', 10),
+			passwordHash: hashSync('ikitenun2026!', 10),
 			role: 'admin'
 		}
 	})

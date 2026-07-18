@@ -29,5 +29,13 @@ export const actions: Actions = {
 			await prisma.product.update({ where: { id }, data: { isActive: !product.isActive } })
 		}
 		return { success: true }
+	},
+
+	delete: async ({ request, locals }) => {
+		requireAdmin(locals.user)
+		const form = await request.formData()
+		const id = form.get('id') as string
+		await prisma.product.delete({ where: { id } })
+		return { success: true }
 	}
 }

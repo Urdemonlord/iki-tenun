@@ -3,6 +3,16 @@ import type { Handle } from '@sveltejs/kit'
 import { randomUUID } from 'crypto'
 
 export const handle: Handle = async ({ event, resolve }) => {
+	// Security headers
+	event.setHeaders({
+		'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+		'X-Content-Type-Options': 'nosniff',
+		'X-Frame-Options': 'SAMEORIGIN',
+		'Referrer-Policy': 'strict-origin-when-cross-origin',
+		'X-XSS-Protection': '0',
+		'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+	})
+
 	// Auth — resolve user first
 	const sessionId = event.cookies.get(lucia.sessionCookieName)
 	if (sessionId) {
@@ -39,5 +49,24 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.cartId = cartId
 	}
 
-	return resolve(event)
+	const response = await resolve(event)
+
+	// CSP header — allow self, Komerce, RajaOngkir, Google Fonts
+	response.headers.set(
+		'Content-Security-Policy',
+		[
+			"default-src 'self'",
+			"script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+			"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+			"img-src 'self' data: https:",
+			"font-src 'self' https://fonts.gstatic.com https://frontend-cdn.perplexity.ai",
+			"connect-src 'self' https://rajaongkir.komerce.id https://api-sandbox.collaborator.komerce.id https://api.collaborator.komerce.id",
+			"frame-src 'self' https://pay-sandbox.komerce.my.id https://pay.komerce.my.id https://www.google.com",
+			"object-src 'none'",
+			"base-uri 'self'",
+			"form-action 'self'",
+		].join('; ')
+	)
+
+	return response
 }

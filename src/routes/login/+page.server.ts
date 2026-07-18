@@ -3,6 +3,7 @@ import { prisma } from '$lib/server/db'
 import { compareSync } from 'bcryptjs'
 import { redirect, fail } from '@sveltejs/kit'
 import { mergeCarts } from '$lib/server/cart'
+import { checkRateLimit } from '$lib/server/ratelimit'
 import { z } from 'zod/v4'
 import type { Actions, PageServerLoad } from './$types'
 
@@ -25,6 +26,13 @@ export const actions: Actions = {
 		}
 
 		const { email, password } = parsed.data
+
+		// Rate limit: 5 attempts per 15 min per IP
+		const ip = request.headers.get('x-forwarded-for') || '127.0.0.1'
+		const rateLimitKey = `login:${ip}`
+		if (!checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000)) {
+			return fail(429, { error: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' })
+		}
 
 		const user = await prisma.user.findUnique({ where: { email } })
 		if (!user || !compareSync(password, user.passwordHash)) {

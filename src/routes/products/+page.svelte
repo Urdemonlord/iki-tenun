@@ -72,12 +72,14 @@
 		<p class="text-center text-stone py-12">Produk tidak ditemukan.</p>
 	{/if}
 
-	<!-- Products grid with stagger -->
-	<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+	<!-- Products masonry grid with stagger -->
+	<div class="columns-2 md:columns-3 lg:columns-4 gap-3 md:gap-5 [column-fill:_balance]">
 		{#each data.products as product, i (product.id)}
-			<ScrollReveal>
-				<ProductCard {product} priority={i < 4} />
-			</ScrollReveal>
+			<div class="break-inside-avoid mb-3 md:mb-5">
+				<ScrollReveal>
+					<ProductCard {product} priority={i < 8} />
+				</ScrollReveal>
+			</div>
 		{/each}
 	</div>
 

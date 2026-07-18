@@ -5,10 +5,13 @@ const MIDTRANS_SERVER_KEY = env.MIDTRANS_SERVER_KEY || ''
 const MIDTRANS_IS_PRODUCTION = env.MIDTRANS_IS_PRODUCTION || 'false'
 
 const BASE_URL = MIDTRANS_IS_PRODUCTION === 'true'
-	? 'https://app.midtrans.com/api/v2'
-	: 'https://app.sandbox.midtrans.com/api/v2'
+	? 'https://app.midtrans.com'
+	: 'https://app.sandbox.midtrans.com'
 
-const SNAP_URL = MIDTRANS_IS_PRODUCTION === 'true'
+const SNAP_API_URL = `${BASE_URL}/snap/v1/transactions`
+const CORE_API_URL = `${BASE_URL}/api/v2`
+
+const SNAP_JS_URL = MIDTRANS_IS_PRODUCTION === 'true'
 	? 'https://app.midtrans.com/snap/snap.js'
 	: 'https://app.sandbox.midtrans.com/snap/snap.js'
 
@@ -83,7 +86,7 @@ export async function createTransaction(
 		]
 	}
 
-	const res = await fetch(`${BASE_URL}/${params.orderId}/charge`, {
+	const res = await fetch(SNAP_API_URL, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -128,10 +131,10 @@ export async function getTransactionStatus(orderId: string): Promise<{
 	fraud_status?: string
 	payment_type?: string
 }> {
-	const res = await fetch(`${BASE_URL}/${orderId}/status`, {
+	const res = await fetch(`${CORE_API_URL}/${orderId}/status`, {
 		headers: { Authorization: AUTH_HEADER }
 	})
 	return res.json()
 }
 
-export { SNAP_URL }
+export { SNAP_JS_URL }

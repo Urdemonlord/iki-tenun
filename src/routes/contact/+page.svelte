@@ -43,6 +43,10 @@
 				<p class="text-sm text-stone">Pecangaan, Kab. Jepara<br/>Jawa Tengah 59462</p>
 			</div>
 			<div>
+				<p class="text-sm font-medium text-charcoal mb-1">Telepon / WhatsApp</p>
+				<a href="tel:6281225158035" class="text-sm text-stone hover:text-charcoal transition">+62 812-2515-8035</a>
+			</div>
+			<div>
 				<p class="text-sm font-medium text-charcoal mb-1">Email</p>
 				<p class="text-sm text-stone">ikitenun.store@gmail.com</p>
 			</div>
@@ -56,5 +60,14 @@
 				</div>
 			</div>
 		</div>
+	</div>
+
+	<!-- Google Maps -->
+	<div class="mt-12">
+		<iframe
+			src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3963.0!2d110.6958000!3d-6.6854200!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwNDEnMDcuNSJTIDExMMKwNDEnNDQuOSJF!5e0!3m2!1sen!2sid!4v1690000000000"
+			width="100%" height="320" style="border:0; border-radius: 12px;" allowfullscreen="" loading="lazy"
+			referrerpolicy="no-referrer-when-downgrade" title="IKI TENUN - Pecangaan, Jepara">
+		</iframe>
 	</div>
 </div>

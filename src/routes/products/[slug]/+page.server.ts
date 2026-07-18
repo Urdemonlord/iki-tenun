@@ -2,7 +2,7 @@ import { prisma } from '$lib/server/db'
 import { error, redirect, fail } from '@sveltejs/kit'
 import type { Actions, PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
 	const product = await prisma.product.findUnique({
 		where: { slug: params.slug },
 		include: {
@@ -33,7 +33,18 @@ export const load: PageServerLoad = async ({ params }) => {
 		? product.reviews.reduce((s, r) => s + r.rating, 0) / product.reviews.length
 		: null
 
-	return { product, related, avgRating }
+	// Check wishlist status
+	let isWishlisted = false
+	if (locals.user) {
+		const w = await prisma.wishlistItem.findUnique({
+			where: { userId_productId: { userId: locals.user.id, productId: product.id } }
+		})
+		isWishlisted = !!w
+	}
+
+	const user = locals.user ? { id: locals.user.id, name: locals.user.name } : null
+
+	return { product, related, avgRating, isWishlisted, user }
 }
 
 export const actions: Actions = {

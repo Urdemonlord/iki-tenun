@@ -3,7 +3,7 @@ import { env } from '$env/dynamic/private'
 const BASE_URL = 'https://rajaongkir.komerce.id/api/v1'
 const API_KEY = env.RAJAONGKIR_API_KEY || ''
 
-function auth() {
+function auth(): Record<string, string> {
 	if (!API_KEY) throw new Error('RAJAONGKIR_API_KEY not configured')
 	return { key: API_KEY }
 }
@@ -16,6 +16,7 @@ export interface RajaOngkirDestination {
 	city: string
 	district: string
 	subdistrict: string
+	zip_code: string
 }
 
 export interface RajaOngkirCostOption {
@@ -31,11 +32,22 @@ export interface RajaOngkirCostResult {
 	origin: RajaOngkirDestination
 	destination: RajaOngkirDestination
 	costs: RajaOngkirCostOption[]
+	raw: Array<Record<string, unknown>>
+}
+
+/**
+ * Helper: build form-encoded body string
+ */
+function formEncode(data: Record<string, string | number>): string {
+	return Object.entries(data)
+		.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
+		.join('&')
 }
 
 /**
  * Search for a domestic destination (city/district) by name.
  * Used for autocomplete/search in checkout.
+ * V2 API returns subdistrict-level results.
  */
 export async function searchDestination(query: string): Promise<RajaOngkirDestination[]> {
 	const res = await fetch(
@@ -43,13 +55,24 @@ export async function searchDestination(query: string): Promise<RajaOngkirDestin
 		{ headers: auth() }
 	)
 	const data = await res.json()
-	if (!res.ok) throw new Error(`RajaOngkir search error: ${data.message || res.status}`)
-	return data.data || []
+	if (!res.ok) throw new Error(`RajaOngkir search error: ${data.meta?.message || data.message || res.status}`)
+
+	const items = data.data || []
+	return items.map((item: any) => ({
+		id: String(item.id || ''),
+		name: item.label || item.name || '',
+		type: item.type || 'subdistrict',
+		province: item.province_name || item.province || '',
+		city: item.city_name || item.city || '',
+		district: item.district_name || item.district || '',
+		subdistrict: item.subdistrict_name || item.subdistrict || '',
+		zip_code: item.zip_code || ''
+	}))
 }
 
 /**
  * Calculate domestic shipping cost.
- * Uses direct-search method (subdistrict IDs).
+ * V2 API uses form-encoded POST body and returns a flat array.
  */
 export async function calculateCost(
 	originId: string,
@@ -57,25 +80,41 @@ export async function calculateCost(
 	weight: number,
 	courier: string
 ): Promise<RajaOngkirCostResult> {
-	const body = {
+	const body = formEncode({
 		origin: originId,
 		destination: destinationId,
 		weight,
 		courier
-	}
+	})
 
 	const res = await fetch(`${BASE_URL}/calculate/domestic-cost`, {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/json',
+			'Content-Type': 'application/x-www-form-urlencoded',
 			...auth()
 		},
-		body: JSON.stringify(body)
+		body
 	})
 
 	const data = await res.json()
-	if (!res.ok) throw new Error(`RajaOngkir cost error: ${data.message || res.status}`)
-	return data.data
+	if (!res.ok) throw new Error(`RajaOngkir cost error: ${data.meta?.message || data.message || res.status}`)
+
+	const items: any[] = data.data || []
+	const costs: RajaOngkirCostOption[] = items.map((item: any) => ({
+		courier: item.code || item.courier || '',
+		courierName: item.name || item.courierName || '',
+		service: item.service || '',
+		description: item.description || '',
+		cost: Number(item.cost) || 0,
+		etd: item.etd ? String(item.etd).replace(' day', '').replace(' days', '') + ' hari' : ''
+	}))
+
+	return {
+		origin: {} as RajaOngkirDestination, // V2 doesn't return origin/destination in cost response
+		destination: {} as RajaOngkirDestination,
+		costs,
+		raw: items
+	}
 }
 
 /**

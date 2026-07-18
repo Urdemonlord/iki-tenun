@@ -1,16 +1,25 @@
 <script lang="ts">
 	import ProductCard from '$lib/components/products/ProductCard.svelte';
 	import ScrollReveal from '$lib/components/ScrollReveal.svelte';
+	import { onMount } from 'svelte';
+	import Swiper from 'swiper';
+	import { Autoplay, Pagination, EffectFade } from 'swiper/modules';
 	let { data } = $props();
 
-	let heroSlide = $state(0);
-	const heroItems = $derived(data.featured.filter(p => p.images?.length).slice(0, 5));
+	const heroSlides = $derived(data.featured.filter(p => p.images?.length).slice(0, 5));
+	let swiperEl: HTMLElement;
 
-	// Auto-slide
-	$effect(() => {
-		if (heroItems.length <= 1) return;
-		const id = setInterval(() => { heroSlide = (heroSlide + 1) % heroItems.length; }, 5000);
-		return () => clearInterval(id);
+	onMount(() => {
+		if (!swiperEl || heroSlides.length < 2) return;
+		new Swiper(swiperEl, {
+			modules: [Autoplay, Pagination, EffectFade],
+			effect: 'fade',
+			fadeEffect: { crossFade: true },
+			autoplay: { delay: 5000, disableOnInteraction: false },
+			pagination: { el: '.swiper-pagination', clickable: true },
+			loop: true,
+			speed: 800,
+		});
 	});
 </script>
 
@@ -18,45 +27,36 @@
 	<title>IKI TENUN - Tenun Ikat Rajawali Jepara</title>
 </svelte:head>
 
-<!-- Hero Carousel -->
-<section class="relative min-h-[60vh] md:h-[80vh] overflow-hidden">
-	<!-- Slides background -->
-	{#each heroItems as item, i}
-		<div class="absolute inset-0 transition-opacity duration-1000 {i === heroSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'}">
-			<img src={item.images[0]?.url} alt={item.name} class="w-full h-full object-cover object-top" loading={i === 0 ? 'eager' : 'lazy'} />
-			<div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
+<!-- Hero Swiper Carousel -->
+<section class="relative min-h-[60vh] md:h-[85vh] overflow-hidden">
+	<div class="swiper h-full" bind:this={swiperEl}>
+		<div class="swiper-wrapper">
+			{#each heroSlides as slide}
+				<div class="swiper-slide relative">
+					<img src={slide.images[0]?.url} alt={slide.name} class="w-full h-full object-cover object-top absolute inset-0" />
+					<div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10"></div>
+					<div class="relative z-20 h-full flex items-center">
+						<div class="mx-auto max-w-7xl px-4 w-full">
+							<div class="max-w-lg">
+								<p class="text-xs md:text-sm font-medium tracking-[0.2em] text-white/60 uppercase mb-4">Tenun Ikat Rajawali</p>
+								<h1 class="font-display text-3xl md:text-5xl lg:text-7xl font-bold leading-[1.1] mb-6 text-white">
+									{slide.name}
+								</h1>
+								<div class="flex gap-3">
+									<a href="/products/{slide.slug}" class="inline-block bg-white text-charcoal px-6 md:px-8 py-3 rounded-lg font-medium hover:bg-cream transition hover:scale-105 active:scale-95">
+										Lihat Produk
+									</a>
+									<a href="/products" class="inline-block border border-white/30 text-white px-6 md:px-8 py-3 rounded-lg font-medium hover:bg-white/10 transition hover:scale-105 active:scale-95">
+										Semua Koleksi
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/each}
 		</div>
-	{/each}
-
-	<div class="mx-auto max-w-7xl px-4 py-12 md:py-0 flex flex-col md:flex-row items-center h-full relative z-10 min-h-[60vh] md:min-h-[80vh]">
-		<div class="flex-1 text-center md:text-left">
-			<p class="text-xs md:text-sm font-medium tracking-widest text-white/70 uppercase mb-4 animate-[fadeInUp_0.6s_ease-out]">
-				Tenun Ikat Rajawali
-			</p>
-			<h1 class="font-display text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6 text-white
-				animate-[fadeInUp_0.6s_ease-out_0.1s_both]">
-				Warisan Budaya,<br/>Sentuhan Modern
-			</h1>
-			<p class="text-base md:text-lg text-white/80 mb-6 md:mb-8 max-w-md mx-auto md:mx-0
-				animate-[fadeInUp_0.6s_ease-out_0.2s_both]">
-				Tenun ikat asli Jepara, dirajut dengan penuh cinta. Koleksi dress, blazer, dan set tenun premium.
-			</p>
-			<a href="/products" class="inline-block bg-white text-charcoal px-6 md:px-8 py-3 rounded-lg font-medium hover:bg-cream transition hover:scale-105 active:scale-95
-				animate-[fadeInUp_0.6s_ease-out_0.3s_both]">
-				Lihat Koleksi
-			</a>
-		</div>
-
-		<!-- Slide indicator dots -->
-		{#if heroItems.length > 1}
-			<div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-				{#each heroItems as _, i}
-					<button onclick={() => heroSlide = i}
-						class="w-2 h-2 rounded-full transition-all duration-300 {i === heroSlide ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/70'}"
-						aria-label="Slide {i + 1}" />
-				{/each}
-			</div>
-		{/if}
+		<div class="swiper-pagination !bottom-8"></div>
 	</div>
 </section>
 
@@ -178,10 +178,3 @@
 	</div>
 </section>
 </ScrollReveal>
-
-<style>
-	@keyframes fadeInUp {
-		from { opacity: 0; transform: translateY(20px); }
-		to { opacity: 1; transform: translateY(0); }
-	}
-</style>

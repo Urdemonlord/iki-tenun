@@ -3,6 +3,7 @@ import { prisma } from '$lib/server/db'
 import { hashSync } from 'bcryptjs'
 import { redirect } from '@sveltejs/kit'
 import { mergeCarts } from '$lib/server/cart'
+import { checkRateLimit } from '$lib/server/ratelimit'
 import type { Actions } from './$types'
 import { z } from 'zod/v4'
 
@@ -22,6 +23,14 @@ export const actions: Actions = {
 		}
 
 		const { email, name, password } = parsed.data
+
+		// Rate limit: 3 registrations per hour per IP
+		const ip = request.headers.get('x-forwarded-for') || '127.0.0.1'
+		const rateLimitKey = `register:${ip}`
+		if (!checkRateLimit(rateLimitKey, 3, 60 * 60 * 1000)) {
+			return { success: false, error: 'Terlalu banyak pendaftaran. Coba lagi nanti.' }
+		}
+
 		const existing = await prisma.user.findUnique({ where: { email } })
 		if (existing) {
 			return { success: false, error: 'Email sudah terdaftar' }

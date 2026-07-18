@@ -11,7 +11,7 @@
 				<div class="flex gap-4 mt-4">
 					<a href="https://www.instagram.com/iki.tenun/" target="_blank" rel="noopener" class="text-white/50 hover:text-white transition text-sm">Instagram</a>
 					<a href="https://www.tokopedia.com/rennysalim" target="_blank" rel="noopener" class="text-white/50 hover:text-white transition text-sm">Tokopedia</a>
-					<a href="https://wa.me/6281234567890" target="_blank" rel="noopener" class="text-white/50 hover:text-white transition text-sm">WhatsApp</a>
+					<a href="https://wa.me/6281225158035" target="_blank" rel="noopener" class="text-white/50 hover:text-white transition text-sm">WhatsApp</a>
 				</div>
 			</div>
 
@@ -43,7 +43,7 @@
 					<span>Pecangaan, Kab. Jepara</span>
 					<span>Jawa Tengah 59462</span>
 					<a href="mailto:ikitenun.store@gmail.com" class="hover:text-white transition">ikitenun.store@gmail.com</a>
-					<a href="tel:6281234567890" class="hover:text-white transition">+62 812-3456-7890</a>
+					<a href="tel:6281225158035" class="hover:text-white transition">+62 812-2515-8035</a>
 				</div>
 			</div>
 		</div>

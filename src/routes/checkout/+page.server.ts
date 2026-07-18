@@ -1,6 +1,7 @@
 import { prisma } from '$lib/server/db'
 import { redirect, fail } from '@sveltejs/kit'
-import { createTransaction } from '$lib/server/midtrans'
+import { createPayment, CHANNELS, findChannel } from '$lib/server/kommerce-payment'
+import { validateVoucher } from '$lib/server/voucher'
 import type { Actions, PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -11,7 +12,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	if (items.length === 0) throw redirect(302, '/cart')
 
 	const subtotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
-	return { items, subtotal }
+	return { items, subtotal, channels: CHANNELS }
 }
 
 export const actions: Actions = {
@@ -28,9 +29,16 @@ export const actions: Actions = {
 		const shippingCourier = form.get('shipping_courier') as string || ''
 		const shippingService = form.get('shipping_service') as string || ''
 		const shippingCost = parseInt(form.get('shipping_cost') as string) || 0
+		const voucherCode = (form.get('voucher') as string)?.trim() || null
+		const paymentChannel = (form.get('payment_channel') as string) || 'BCA'
 
 		if (!name || !phone || !address || !city || !province || !zip) {
 			return fail(400, { error: 'Semua field alamat harus diisi' })
+		}
+
+		const channel = findChannel(paymentChannel)
+		if (!channel) {
+			return fail(400, { error: 'Metode pembayaran tidak valid' })
 		}
 
 		const items = await prisma.cartItem.findMany({
@@ -40,8 +48,25 @@ export const actions: Actions = {
 		if (items.length === 0) throw redirect(302, '/cart')
 
 		const subtotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
-		const total = subtotal + shippingCost
+		let total = subtotal + shippingCost
 		const userId = locals.user?.id
+
+		// Voucher validation
+		let voucherDiscount = 0
+		let voucherName = ''
+		if (voucherCode) {
+			const voucher = validateVoucher(voucherCode, subtotal)
+			if (!voucher) return fail(400, { error: 'Kode voucher tidak valid atau tidak memenuhi syarat' })
+			voucherDiscount = voucher.discountAmount
+			voucherName = voucher.description
+			total -= voucherDiscount
+			if (total < 0) total = 0
+		}
+
+		// Minimum payment: Rp10.000
+		if (total < 10000) {
+			return fail(400, { error: 'Minimal pembayaran Rp10.000' })
+		}
 
 		let orderId: string
 		try {
@@ -73,8 +98,8 @@ export const actions: Actions = {
 						shippingCourier: shippingCourier || null,
 						shippingService: shippingService || null,
 						shippingCost,
-						notes: notes || null,
-						paymentMethod: 'midtrans',
+						notes: notes || (voucherDiscount > 0 ? `Voucher: ${voucherName} (-Rp ${voucherDiscount.toLocaleString('id-ID')})` : null),
+						paymentMethod: `kommerce_${channel.code.toLowerCase()}`,
 						paymentStatus: 'pending',
 						items: {
 							create: items.map(i => ({
@@ -100,30 +125,39 @@ export const actions: Actions = {
 			return fail(400, { error: e instanceof Error ? e.message : 'Gagal membuat pesanan' })
 		}
 
-		// Create Midtrans Snap transaction
+		// Create Komerce Payment
 		try {
-			const snapResult = await createTransaction({
+			const payment = await createPayment({
 				orderId,
 				amount: total,
+				channelCode: channel.code,
+				paymentType: channel.type,
+				customer: {
+					name,
+					email: email || 'customer@ikitenun.com',
+					phone
+				},
 				items: items.map(i => ({
-					id: i.productId,
 					name: i.product.name,
 					price: i.product.price,
 					quantity: i.quantity
-				})),
-				customer: {
-					name,
-					phone,
-					email,
-					address,
-					city,
-					postalCode: zip
+				}))
+			})
+
+			// Save payment reference to order
+			await prisma.order.update({
+				where: { id: orderId },
+				data: {
+					paymentRef: payment.paymentId,
+					paymentStatus: 'pending'
 				}
 			})
-			throw redirect(303, snapResult.redirectUrl)
+
+			// Redirect to order page with payment info
+			throw redirect(302, `/order/${orderId}?payment=created`)
 		} catch (e: any) {
 			if (e instanceof Response) throw e
-			console.error('[checkout] Midtrans error:', e?.message || e)
+			console.error('[checkout] Komerce payment error:', e?.message || e)
 			throw redirect(302, `/order/${orderId}?payment_error=1`)
 		}
 	}

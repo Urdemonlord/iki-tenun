@@ -45,12 +45,20 @@
 						</span>
 					</td>
 					<td class="px-4 py-3">
-						<form method="POST" action="?/toggleActive" use:enhance>
-							<input type="hidden" name="id" value={product.id} />
-							<button class="text-xs text-stone hover:text-charcoal">
-								{product.isActive ? 'Disable' : 'Enable'}
-							</button>
-						</form>
+						<div class="flex items-center gap-2">
+							<a href="/admin/products/{product.id}/edit" class="text-xs text-blue-600 hover:text-blue-800">Edit</a>
+							<form method="POST" action="?/toggleActive" use:enhance class="inline">
+								<input type="hidden" name="id" value={product.id} />
+								<button class="text-xs text-stone hover:text-charcoal">
+									{product.isActive ? 'Disable' : 'Enable'}
+								</button>
+							</form>
+							<form method="POST" action="?/delete" use:enhance class="inline"
+									onsubmit={(e) => { if (!confirm('Hapus {product.name}?')) e.preventDefault(); }}>
+								<input type="hidden" name="id" value={product.id} />
+								<button class="text-xs text-red-500 hover:text-red-700">Hapus</button>
+							</form>
+						</div>
 					</td>
 				</tr>
 			{/each}

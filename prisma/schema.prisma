@@ -104,6 +104,7 @@ model Order {
   shippingService  String?
   shippingCost     Int         @default(0)
   paymentMethod    String?
+  paymentRef       String?
   paymentStatus    String      @default("pending")
   notes            String?
   createdAt        DateTime    @default(now())
