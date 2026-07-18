@@ -130,10 +130,20 @@
 		<div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
 			{#each data.categories as cat}
 				<a href="/products?category={cat.slug}" class="group">
-					<div class="aspect-square bg-sand/30 rounded-lg flex flex-col items-center justify-center gap-2
-						group-hover:bg-sand/50 group-hover:scale-105 transition duration-300">
-						<span class="font-display text-base md:text-xl font-bold text-stone group-hover:text-charcoal">{cat.name}</span>
-						<span class="text-[10px] text-stone/50 group-hover:text-stone/70 transition">Lihat Koleksi →</span>
+					<div class="aspect-[4/5] rounded-lg overflow-hidden relative bg-sand/30
+						group-hover:scale-105 transition duration-300">
+						{#if data.categoryImages?.get(cat.id)}
+							<img src={data.categoryImages.get(cat.id)} alt={cat.name}
+								class="w-full h-full object-cover object-top" loading="lazy" />
+						{:else}
+							<div class="w-full h-full flex items-center justify-center">
+								<span class="font-display text-base md:text-xl font-bold text-stone">{cat.name}</span>
+							</div>
+						{/if}
+						<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+						<div class="absolute bottom-0 left-0 right-0 p-3 md:p-4">
+							<span class="font-display text-sm md:text-base font-bold text-white">{cat.name}</span>
+						</div>
 					</div>
 				</a>
 			{/each}
@@ -175,6 +185,65 @@
 		<a href="/about" class="inline-block border border-white/30 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-white/10 transition hover:scale-105 active:scale-95 relative">
 			Pelajari Lebih Lanjut
 		</a>
+	</div>
+</section>
+</ScrollReveal>
+
+<!-- Social Proof — Dikenakan oleh -->
+<ScrollReveal>
+<section class="mx-auto max-w-7xl px-4 py-12 md:py-16">
+	<div class="text-center mb-8 md:mb-12">
+		<p class="text-xs md:text-sm font-medium tracking-widest text-stone uppercase mb-2">Social Proof</p>
+		<h2 class="font-display text-2xl md:text-3xl font-bold">Dikenakan Oleh</h2>
+		<p class="text-stone text-sm mt-2 max-w-md mx-auto">Dipercaya oleh ratusan pelanggan di seluruh Indonesia</p>
+	</div>
+	<div class="grid grid-cols-3 md:grid-cols-5 gap-3 md:gap-5">
+		{#each data.featured.slice(0, 5) as product}
+			<div class="text-center group">
+				<div class="aspect-square rounded-full overflow-hidden bg-sand/20 mb-3
+					ring-2 ring-white shadow-md group-hover:ring-terracotta transition-all duration-300">
+					<img src={product.images[0]?.url} alt={product.name}
+						class="w-full h-full object-cover object-top" loading="lazy" />
+				</div>
+				<p class="text-xs font-medium text-charcoal group-hover:text-terracotta transition-colors">
+					{product.name}
+				</p>
+				<p class="text-[10px] text-stone/60">Pemakai Setia</p>
+			</div>
+		{/each}
+	</div>
+</section>
+</ScrollReveal>
+
+<!-- Blog Mini -->
+<ScrollReveal>
+<section class="bg-ivory py-12 md:py-16">
+	<div class="mx-auto max-w-7xl px-4">
+		<div class="text-center mb-8 md:mb-12">
+			<p class="text-xs md:text-sm font-medium tracking-widest text-stone uppercase mb-2">Artikel</p>
+			<h2 class="font-display text-2xl md:text-3xl font-bold">Blog & Tips</h2>
+		</div>
+		<div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+			{#each data.blogArticles as article}
+				<a href="/blog/{article.slug}" class="group bg-white rounded-xl overflow-hidden shadow-sm
+					hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+					<div class="h-36 bg-gradient-to-br from-charcoal/10 to-charcoal/5 flex items-center justify-center">
+						<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+							stroke="currentColor" stroke-width="1" class="text-charcoal/20">
+							<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+							<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+						</svg>
+					</div>
+					<div class="p-4">
+						<p class="text-[10px] text-stone/50 mb-1">{article.date}</p>
+						<h3 class="font-medium text-sm mb-1.5 group-hover:text-terracotta transition-colors line-clamp-2">
+							{article.title}
+						</h3>
+						<p class="text-xs text-stone/60 line-clamp-2">{article.excerpt}</p>
+					</div>
+				</a>
+			{/each}
+		</div>
 	</div>
 </section>
 </ScrollReveal>
