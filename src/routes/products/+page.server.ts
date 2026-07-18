@@ -12,6 +12,13 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	const categories = await prisma.category.findMany({ orderBy: { sortOrder: 'asc' } })
 
+	// Resolve category slug → id
+	let categoryId: string | null = null
+	if (category) {
+		const cat = categories.find(c => c.slug === category)
+		if (cat) categoryId = cat.id
+	}
+
 	const sortField = (() => {
 		switch (sort) {
 			case 'price_asc': return 'p.price ASC'
@@ -26,20 +33,25 @@ export const load: PageServerLoad = async ({ url }) => {
 		const rawSort = `CASE WHEN p.name LIKE ? THEN 0 ELSE 1 END, ${sortField}`
 		const offset = (page - 1) * PAGE_SIZE
 
+		const catFilter = categoryId ? 'AND p.category_id = ?' : ''
+		const catParam = categoryId ? [categoryId] : []
+
 		const rows = await prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(
 			`SELECT p.* FROM Product p
 			 WHERE p.is_active = 1
+			   ${catFilter}
 			   AND (p.name LIKE ? OR p.description LIKE ? OR p.tags LIKE ?)
 			 ORDER BY ${rawSort}
 			 LIMIT ? OFFSET ?`,
-			like, like, like, like, PAGE_SIZE, offset
+			...catParam, like, like, like, PAGE_SIZE, offset
 		)
 
 		const countResult = await prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(
 			`SELECT COUNT(*) as cnt FROM Product p
 			 WHERE p.is_active = 1
+			   ${catFilter}
 			   AND (p.name LIKE ? OR p.description LIKE ? OR p.tags LIKE ?)`,
-			like, like, like
+			...catParam, like, like, like
 		)
 		const total = Number(countResult[0]?.cnt || 0)
 
@@ -66,7 +78,8 @@ export const load: PageServerLoad = async ({ url }) => {
 		return { products, categories, activeCategory: category, query: q, sort, page, totalPages, total }
 	}
 
-	const where = { isActive: true }
+	const where: Record<string, unknown> = { isActive: true }
+	if (categoryId) where.categoryId = categoryId
 	const orderBy = (() => {
 		switch (sort) {
 			case 'price_asc': return { price: 'asc' as const }
