@@ -9,14 +9,14 @@ services:
       - DATABASE_FILE=/data/dev.db
       - ORIGIN=https://ikitenun.meowlabs.id
       # Midtrans — isi dengan key dari dashboard Midtrans
-      - MIDTRANS_SERVER_KEY=
-      - MIDTRANS_IS_PRODUCTION=false
+      - MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY}
+      - MIDTRANS_IS_PRODUCTION=${MIDTRANS_IS_PRODUCTION:-false}
       # RajaOngkir — isi dengan API key dari dashboard RajaOngkir
-      - RAJAONGKIR_API_KEY=REPLACED_RAJAONGKIR_KEY
+      - RAJAONGKIR_API_KEY=${RAJAONGKIR_API_KEY}
       # Komerce Payment — dari dashboard collaborator.komerce.id
-      - KOMMERCE_PAYMENT_KEY=REPLACED_KOMMERCE_PAYMENT_KEY
-      - KOMMERCE_PAYMENT_PRODUCTION=false
-      - KOMMERCE_WEBHOOK_SECRET=REPLACED_KOMMERCE_WEBHOOK_SECRET
+      - KOMMERCE_PAYMENT_KEY=${KOMMERCE_PAYMENT_KEY}
+      - KOMMERCE_PAYMENT_PRODUCTION=${KOMMERCE_PAYMENT_PRODUCTION:-false}
+      - KOMMERCE_WEBHOOK_SECRET=${KOMMERCE_WEBHOOK_SECRET}
     volumes:
       - ikitenun_data:/data
     restart: unless-stopped
